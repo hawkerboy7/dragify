@@ -1,0 +1,8 @@
+{
+  "name": "dragify",
+  "version": "0.0.1",
+  "description": "",
+  "main": "app.js",
+  "author": "Dexter Esajas <dexter.esajas@gmail.com>",
+  "license": "MIT"
+}
