@@ -3,8 +3,5 @@ require('de-builder')({
 	browserSync: {
 		enabled: false
 	},
-	browserify: {
-		debug: false
-	},
 	type: 3
 });
