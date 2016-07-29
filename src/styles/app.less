@@ -8,17 +8,35 @@
 		-ms-user-select: none;
 		user-select: none;
 		cursor: move;
+
+		input {
+			pointer-events: none;
+		}
 	}
 	&--mirror {
 		position: fixed;
-		top:0;
-		left:0;
-		z-index: 999999;
+		top: 0;
+		left: 0;
+		z-index: 9999;
 		will-change: transform;
 		pointer-events: none;
+		opacity: 0.7;
 
 		:first-child {
 			margin: 0 !important;
+			box-sizing: border-box;
 		}
+		&:focus {
+			outline: none;
+		}
+	}
+	&--transition {
+		transition: opacity;
+		transition-duration: 500ms;
+		transition-timing-function: ease;
+		pointer-events: none;
+	}
+	&--opaque {
+		opacity: 0.3;
 	}
 }

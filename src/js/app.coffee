@@ -7,9 +7,14 @@ class Dragify
 	constructor: (@containers, settings) ->
 
 		@settings =
+
+			# Determins how much you can move after mousedown before the actual drag will start
 			threshold:
-				x: settings?.threshold?.x || 0
-				y: settings?.threshold?.y || 0
+				x: settings?.threshold?.x || 2
+				y: settings?.threshold?.y || 2
+
+		# Setup events
+		@events = {}
 
 		# Create handler doing all private work
 		new Handler this

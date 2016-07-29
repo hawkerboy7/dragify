@@ -22,9 +22,6 @@ class Handler
 		# Containers must be an array
 		return @error 1 if @dragify.containers.constructor isnt Array
 
-		# Setup events
-		@dragify.events = {}
-
 		# Store data of the to-be-draged object
 		@data =
 			start     : {}
@@ -37,16 +34,16 @@ class Handler
 
 	listeners: ->
 
-		# Dragifyify all objects
+		# Dragifyify all objects =D
 		@listen container for container in @dragify.containers
 
-		# Listen for a mouseup in the window
+		# Listen for a mouseup in the window which stops the drag
 		window.addEventListener 'mouseup', @mouseup
 
 
 	mouseup: (e) =>
 
-		# Only listen for left mouse
+		# Only listen for left mouseup
 		return if e.button isnt 0
 
 		# Stop listening for the mousemove since we stopped dragging
@@ -58,21 +55,27 @@ class Handler
 
 	listen: (container) ->
 
-		# Listen to all child nodes of the provided container
-		for node in container.childNodes
+		# Function is used to keep a correct reference to the node
+		set = (node) =>
 
 			# Listen for a mousedown event on the child node
 			node.addEventListener 'mousedown', (ev) => @mousedown ev, node
 
+		# Listen to all child nodes of the provided container
+		set node for node in container.childNodes
 
-	mousedown: (ev, @node) =>
+
+	mousedown: (ev, node) =>
 
 		# Only continue if left mouseclick
 		return if ev.button isnt 0
 
+		# Store the node that has been 'mousedowned' upon
+		@node = node
+
 		# Store mousedown position
-		@data.start.x = ev.x
-		@data.start.y = ev.y
+		@data.start.x = ev.x || ev.clientX
+		@data.start.y = ev.y || ev.clientY
 
 		# Determin the mousedown position within the node
 		@data.offset =
@@ -84,6 +87,9 @@ class Handler
 
 
 	mousemove: (@e) =>
+
+		@e.x or= @e.clientX
+		@e.y or= @e.clientY
 
 		if not @active
 
@@ -102,28 +108,108 @@ class Handler
 
 	position: ->
 
-		# Update Mirror position
+		# Update mirror position using transform
 		@mirror.style.transform = "translate(#{@e.x-@data.offset.x}px,#{@e.y-@data.offset.y}px)"
 
 		# Get node behind the cursor
 		target = document.elementFromPoint @e.x, @e.y
 
-		# Stop if node is the same as previous
+		# Stop if the target is the same as the previous target
 		return if target is @target
 
-		# Store the different node
+		# Store the new node
 		@target = target
 
-		console.log '@target', @target
+		# Only switch if a target is defined (outside viewport target is null)
+		@switch() if @target
 
-		# Check if target is part of the selected
-		# @validate()
+
+	switch: ->
+
+		# Assume target is not a container to drop in
+		found = false
+
+		# Loop over all containers
+		for parent in @dragify.containers
+
+			# Check if the target is a child of a valid drop container
+			(found = true; break) if @target?.parentNode is parent
+
+			# Determin where to place the @node if the parent doesn't contain it yet
+			return @transfer() if @target is parent and @node.parentNode isnt parent
+
+		# Don't do anything if the parent wasn't one of the provided container parents
+		return if not found
+
+		# Check if the target or node has a higher index
+		if @target.parentNode isnt @node.parentNode or (@getIndex @node) > (@getIndex @target)
+
+			# Insert befire the target
+			@target.parentNode.insertBefore @node, @target
+		else
+
+			# Insert after the target
+			@target.parentNode.insertBefore @node, @target.nextSibling
+
+
+	getIndex: (node) ->
+
+		(return index if child is node) for child, index in node.parentNode.childNodes
+
+		null
+
+
+	transfer: ->
+
+		# Store lowest y distance to child from mouse pointer
+		lowest = null
+
+		# Loop over all children
+		for child, index in @target.childNodes
+
+			# Get the lowest distance between child y-line segments and mouse cursor
+			[val, lower] = @distance
+				top    : child.offsetTop
+				bottom : child.offsetTop + child.clientHeight
+
+			# Set lowest if not defined or if the calculated distance is lower than the existing one
+			if not lowest or val < lowest
+				lowest = val
+				target = child
+				below = lower
+
+		# Add to bottom of parent if the distance between the mouse and the closest child is bigger than the offset
+		target = null if @target.childNodes[@target.childNodes.length-1] is target and below
+
+		# Insert at the position of the target
+		@target.insertBefore @node, target
+
+
+	distance: (pos) ->
+
+		# Pointer is not below this element
+		below = false
+
+		# The offset position of the mouse in the parent element
+		y = @e.offsetY
+
+		# Set distance value
+		val = Math.abs(y-pos.top)
+
+		# Check if bottom value is lower
+		val = bottom if val > bottom = Math.abs(y-pos.bottom)
+
+		# Return value and if the cursor was lower than the div
+		[val, y>pos.bottom]
 
 
 	create: ->
 
 		# Create the div containing a mirror of the node to be dragged and dropped
 		@mirror = document.createElement 'div'
+
+		# Set tabindex of element so it can be focused
+		@mirror.tabIndex = 0
 
 		# Set className
 		@mirror.className = 'dragify--mirror'
@@ -132,19 +218,25 @@ class Handler
 	set: ->
 
 		# Create a copy of the node to-be-dragged
-		@mirror.appendChild @node.cloneNode true
+		@mirror.appendChild clone = @node.cloneNode true
+
+		# Explicitly set the clone's width because of a possible width 100%
+		clone.style.width = "#{@node.offsetWidth}px"
+
+		# Explicitly set the clone's height because of a possible height 100%
+		clone.style.height = "#{@node.offsetHeight}px"
 
 		# Add the mirror to the DOM
 		document.body.appendChild @mirror
 
-		# Split classes by space
-		classes = document.body.className.split ''
+		# Focus the mirror so the @node is unfocused and doesn't trigger event's anymore like hover
+		@mirror.focus()
 
-		# Add class to the list
-		classes.push 'dragify--body'
+		# Prevent the document from selecting while dragging
+		@addClass document.body, 'dragify--body'
 
-		# Turn the list back to a class names string
-		document.body.className = classes.join ' '
+		# Make the original node opague
+		@addClass @node, 'dragify--transition dragify--opaque'
 
 
 	reset: ->
@@ -152,30 +244,72 @@ class Handler
 		# Reset active state
 		@active = false
 
-		# Empty the mirror
+		# Empty the mirror by removing all it's children (which should usually only be one)
 		@mirror.removeChild @mirror.firstChild while @mirror.firstChild
 
-		# Remove the mirrpr from the DOM
+		# Remove the mirror from the DOM
 		document.body.removeChild @mirror
 
 		# Remove all extra styling (positioning) so it's reset to default
 		@mirror.removeAttribute 'style'
 
+		# Remove preventing selection while dragging
+		@removeClass document.body, 'dragify--body'
+
+		# Remove node transfer style
+		@removeClass @node, 'dragify--opaque'
+
+		# Maintain the 'old' reference to the node
+		remove = (node) =>
+
+			# Remove the transition class with a delay so the transition is fully finished
+			setTimeout(=>
+				@removeClass node, 'dragify--transition'
+			,500)
+
+		# Remove using the reference to the 'old' node in case someone starts dragging a new node within the setTimeout time limit of 500ms
+		remove @node
+
+		# Empty node reference
+		@node = null
+
+		# Empty previous target
+		@target = null
+
+
+	addClass: (node, className) ->
+
+		# Empty className will create an empty array value in the split
+		classes = []
+
+		# Split classes by space
+		classes = node.className.split ' ' if node.className
+
+		# Add class to the list
+		classes.push className
+
+		# Turn the list back to a class names string
+		node.className = classes.join ' '
+
+
+	removeClass: (node, className) ->
+
 		# Retrieve classes used on the body
-		classes = document.body.className.split ' '
+		classes = node.className.split ' '
 
 		# Remove the dragify--body class from the list
-		classes.splice classes.indexOf('dragify--body'), 1
+		classes.splice classes.indexOf(className), 1
 
 		# Check if the class should be reset or removed
 		if classes.length is 0
 
-			document.body.removeAttribute 'class'
+			# Remove the class attribute to prevent an empty class attribute
+			node.removeAttribute 'class'
 
 		else
 
 			# Restore the old className
-			document.body.className = classes.join ' '
+			node.className = classes.join ' '
 
 
 
