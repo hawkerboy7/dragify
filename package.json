@@ -1,8 +1,19 @@
 {
   "name": "dragify",
-  "version": "0.0.1",
-  "description": "",
-  "main": "app.js",
+  "version": "0.1.0",
+  "description": "Easily turn your DOM elements into dragable elements",
+  "main": "./build/js/app.js",
   "author": "Dexter Esajas <dexter.esajas@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "de-builder": "^0.7.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hawkerboy7/dragify"
+  },
+  "bugs": "https://github.com/hawkerboy7/dragify/issues",
+  "dependencies": {
+    "mini-event-emitter": "^0.5.0"
+  }
 }
