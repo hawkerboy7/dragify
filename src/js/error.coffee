@@ -3,7 +3,7 @@ class Error
 	constructor: (@dragify) ->
 
 		# Check if the error need to be blocked
-		@block = !@dragify.settings?.error
+		@block = !@dragify.options?.error
 
 
 	error: (id) ->

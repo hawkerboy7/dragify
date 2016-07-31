@@ -112,8 +112,8 @@ class Handler
 		if not @active
 
 			# Check if the tresh hold has been passed
-			@active = true if Math.abs(@e.x-@data.start.x) > @dragify.settings.threshold.x
-			@active = true if Math.abs(@e.y-@data.start.y) > @dragify.settings.threshold.y
+			@active = true if Math.abs(@e.x-@data.start.x) > @dragify.options.threshold.x
+			@active = true if Math.abs(@e.y-@data.start.y) > @dragify.options.threshold.y
 
 			return if not @active
 
