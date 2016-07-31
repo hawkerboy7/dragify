@@ -22,14 +22,23 @@ class Handler
 		# Containers must be an array
 		return @error 1 if @dragify.containers.constructor isnt Array
 
-		# Store data of the to-be-draged object
-		@data =
-			start     : {}
-			offset    : {}
-			treshhold : {}
+		# Set the  data storage var
+		@setData()
 
 		# Create mirror container
 		@create()
+
+
+	setData: ->
+
+		# Store and reset data of the to-be-draged object
+		@data =
+			index     : null
+			start     : {}
+			offset    : {}
+			source    : null
+			parent    : null
+			treshhold : {}
 
 
 	listeners: ->
@@ -72,6 +81,15 @@ class Handler
 
 		# Store the node that has been 'mousedowned' upon
 		@node = node
+
+		# Store the source where the node came from
+		@data.source = node.parentNode
+
+		# Keep track of the current parent for the 'over' event
+		@data.parent = node.parentNode
+
+		# Keep track of the current parent for the 'over' event
+		@data.index = @getIndex node
 
 		# Store mousedown position
 		@data.start.x = ev.x || ev.clientX
@@ -126,6 +144,15 @@ class Handler
 
 	switch: ->
 
+		# Make sure the 'over' event only gets trigger when hover over a new element the current parent doesnt count
+		if @target isnt @data.parent
+
+			# Store the new parent node
+			@data.parent = @target.parentNode
+
+			# Trigger the 'over' event indicating a hover over another element
+			@dragify.emit 'over', @node, @target, @data.source
+
 		# Assume target is not a container to drop in
 		found = false
 
@@ -141,15 +168,24 @@ class Handler
 		# Don't do anything if the parent wasn't one of the provided container parents
 		return if not found
 
-		# Check if the target or node has a higher index
+		# Check if the target or node has a higher index but first also check if the node is already within this parent
 		if @target.parentNode isnt @node.parentNode or (@getIndex @node) > (@getIndex @target)
 
 			# Insert befire the target
-			@target.parentNode.insertBefore @node, @target
+			@insert @target.parentNode, @node, @target
 		else
 
 			# Insert after the target
-			@target.parentNode.insertBefore @node, @target.nextSibling
+			@insert @target.parentNode, @node, @target.nextSibling
+
+
+	insert: (parent, node, target) ->
+
+		# The original element is being moved
+		@dragify.emit 'move', @node, @node.parentNode, @data.source
+
+		# Insert after the target
+		parent.insertBefore node, target
 
 
 	getIndex: (node) ->
@@ -181,8 +217,8 @@ class Handler
 		# Add to bottom of parent if the distance between the mouse and the closest child is bigger than the offset
 		target = null if @target.childNodes[@target.childNodes.length-1] is target and below
 
-		# Insert at the position of the target
-		@target.insertBefore @node, target
+		# Insert after the target
+		@insert @target, @node, target
 
 
 	distance: (pos) ->
@@ -216,6 +252,9 @@ class Handler
 
 
 	set: ->
+
+		# Start the dragging
+		@dragify.emit 'drag', @node, @node.parentNode
 
 		# Create a copy of the node to-be-dragged
 		@mirror.appendChild clone = @node.cloneNode true
@@ -270,11 +309,28 @@ class Handler
 		# Remove using the reference to the 'old' node in case someone starts dragging a new node within the setTimeout time limit of 500ms
 		remove @node
 
+		# Check if the node didn't actually change position
+		if @data.source is @node.parentNode and @data.index is @getIndex @node
+
+			# Node ended up at the place where it came from
+			@dragify.emit 'cancel', @node, @node.parentNode
+
+		else
+
+			# End of the dragging to a new position
+			@dragify.emit 'drop', @node, @node.parentNode, @data.source
+
+		# Indicate end of a drag (which may have resulted in a drop or cancel)
+		@dragify.emit 'end', @node
+
 		# Empty node reference
 		@node = null
 
 		# Empty previous target
 		@target = null
+
+		# Reset the data storage var
+		@setData()
 
 
 	addClass: (node, className) ->

@@ -1,10 +1,15 @@
+Events = require 'mini-event-emitter'
+
 Handler = require './handler'
 
 
 
-class Dragify
+class Dragify extends Events
 
 	constructor: (@containers, settings) ->
+
+		# Run Events constructor to setup the mini event emitter as this classes prototype
+		super
 
 		@settings =
 
@@ -13,23 +18,8 @@ class Dragify
 				x: settings?.threshold?.x || 2
 				y: settings?.threshold?.y || 2
 
-		# Setup events
-		@events = {}
-
 		# Create handler doing all private work
 		new Handler this
-
-
-	on: (event, fn) ->
-
-		# Create events array or use the existing one
-		@events[event] or= []
-
-		# Add function listener
-		@events[event].push fn
-
-		# Return this instance for chaining
-		this
 
 
 
