@@ -17,7 +17,6 @@ Will be created soon
 - Easy to set up
 - Uses hardware acceleration
 - The possibility to provide a [**threshold**][1]
-- Only one dependency (the [MiniEventEmitter][2] which does not have any other dependencies)
 - The 'to-be-dragged' element provides visual feedback while dragging
 
 
@@ -119,12 +118,11 @@ Event Name | Listener Arguments      | Event Description
 
 
 ## Inspiration
-I have used [Dragula][3] and liked its simplicity but I wanted hardware acceleration and a threshold.
+I have used [Dragula][2] and liked its simplicity but I wanted hardware acceleration and a threshold.
 The lack of these functionalities in dragula causes some discomfort for my own use cases.
 If required I will try to add more of the functionality that Dragula provides, however I do not focus on supporting < IE10.
 PR's for supporting < IE10 however I will take into consideration.
 
 
 [1]: #optionsthreshold
-[2]: https://github.com/hawkerboy7/mini-event-emitter
-[3]: https://github.com/bevacqua/dragula/
+[2]: https://github.com/bevacqua/dragula/
