@@ -34,7 +34,7 @@ var dragify = new Dragify(containers,options);
 ```
 
 ### `Containers`
-`containers` is an array of the parents of the DOM elements you which to `dragify`.
+`containers` is an array of the parents of the DOM elements you wish to `dragify`.
 
 ```html
 
@@ -69,13 +69,13 @@ var dragify = new Dragify(containers);
 #### `Options.threshold`
 The threshold option was created to make sure a **click** on a element **doesn't turn into a drag** because the user can't keep it's mouse steady during the click.
 Lots of users want to click on an element but instead drag it, even though it's just a little distance.
-This threshold option allows you to determin how much a user is allowed to move **before** the actual drag starts.
-As long as the drag doesn't start all events the element is listening for will still be triggered as if the drag attempt has not happend yet.
+This threshold option allows you to determine how much a user is allowed to move **before** the actual drag starts.
+As long as the drag doesn't start all events the element is listening for will still be triggered as if the drag attempt has not happened yet.
 By default a threshold of `3px` is applied in both directions.
 
 ```js
 options = {
-	treshhold: {
+	threshold: {
 		x: 20
 		y: 20
 	}
@@ -113,17 +113,9 @@ Event Name | Listener Arguments      | Event Description
 ## Planned functionality
 - Support IE
 - Support both horizontal and vertical placement (now only horizontal is fully supported)
-- Support removing
 - Support placing at the bottom of the parent container when the placed child is smaller than the child that was originally at that position
 - Support mobile
-
-
-## Planned functionality
-- Support IE
-- Support both horizontal and vertical placement (now only horizontal is fully supported)
 - Support removing
-- Support placing at the bottom of the parent container when the placed child is smaller than the child that was originally at that position
-- Support mobile
 
 
 ## Inspiration
