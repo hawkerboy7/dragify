@@ -181,11 +181,11 @@ class Handler
 
 	insert: (parent, node, target) ->
 
-		# The original element is being moved
-		@dragify.emit 'move', @node, @node.parentNode, @data.source
-
 		# Insert after the target
 		parent.insertBefore node, target
+
+		# The original element is being moved
+		@dragify.emit 'move', @node, @node.parentNode, @data.source
 
 
 	getIndex: (node) ->
