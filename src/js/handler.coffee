@@ -276,9 +276,6 @@ class Handler
 
 	set: ->
 
-		# Prevent any input on the page from being selected (they otherwise still may get selected text when you drag over them)
-		(@inputs = getElementsByTagName 'input').setAttribute 'disabled', 'disabled'
-
 		# Start the dragging
 		@dragify.emit 'drag', @node, @node.parentNode
 
@@ -305,12 +302,6 @@ class Handler
 
 
 	reset: ->
-
-		# Remove all disable attributes set previously
-		@inputs.removeAttribute 'disabled'
-
-		# Remove references to previously disabled inputs
-		@inputs = null
 
 		# Reset active state
 		@active = false
