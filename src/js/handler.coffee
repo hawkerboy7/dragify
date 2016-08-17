@@ -125,6 +125,10 @@ class Handler
 
 	mousemove: (@e) =>
 
+		# Prevent any default actions while dragging (text-selection, cursor change)
+		@e.preventDefault()
+
+		# Fix for events that don't have a 'x' or 'y'
 		@e.x or= @e.clientX
 		@e.y or= @e.clientY
 
