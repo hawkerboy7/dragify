@@ -95,10 +95,29 @@ class Handler
 		@data.start.x = ev.x || ev.clientX
 		@data.start.y = ev.y || ev.clientY
 
+		# Store offset of the click
+		x = ev.offsetX
+		y = ev.offsetY
+
+		# Loop over the path to check if the dragified element was pressed or one of it's children('s children etc.)
+		for el in ev.path
+
+			# Stop checkking
+			if el is node
+				found = true
+				break
+
+			# Add to the offset so the position relative to the dragified element gets calculated
+			x += el.offsetLeft
+			y += el.offsetTop
+
+		# The node must always be found otherwise something is wrong with the path or the assumtion the node will always be avaiable in the path
+		return @error 2 if not found
+
 		# Determin the mousedown position within the node
 		@data.offset =
-			x : ev.offsetX
-			y : ev.offsetY
+			x : x
+			y : y
 
 		# Start listening for the mousemove event
 		window.addEventListener 'mousemove', @mousemove
