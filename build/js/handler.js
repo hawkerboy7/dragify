@@ -253,7 +253,10 @@ Handler = (function() {
     document.body.appendChild(this.mirror);
     this.mirror.focus();
     this.addClass(document.body, 'dragify--body');
-    return this.addClass(this.node, 'dragify--transition dragify--opaque');
+    if (this.dragify.options.transition) {
+      this.addClass(this.node, 'dragify--transition');
+    }
+    return this.addClass(this.node, 'dragify--opaque');
   };
 
   Handler.prototype.reset = function() {
@@ -273,7 +276,9 @@ Handler = (function() {
         }, 500);
       };
     })(this);
-    remove(this.node);
+    if (this.dragify.options.transition) {
+      remove(this.node);
+    }
     if (this.data.source === this.node.parentNode && this.data.index === this.getIndex(this.node)) {
       this.dragify.emit('cancel', this.node, this.node.parentNode);
     } else {
