@@ -107,27 +107,24 @@ You can listen to the following events
 var dragify = new Dragify(containers);
 
 dragify.on('drag', function(){console.log('drag');});
-dragify.on('over', function(){console.log('over');});
 dragify.on('move', function(){console.log('move');});
 dragify.on('drop', function(){console.log('drop');});
 dragify.on('cancel', function(){console.log('cancel');});
 dragify.on('end', function(){console.log('end');});
 ```
 
-Event Name | Listener Arguments      | Event Description
------------|-------------------------|-------------------
-`drag`     | `el, source`            | `el` was lifted from `source`
-`over`     | `el, container, source` | `el` is over `container`, and originally came from `source`
-`move`     | `el, container, source` | `el`, _the visual aid_'s position has changed in `container`. `el` originally came from `source`
-`drop`     | `el, target, source`    | `el` was dropped into `target`, and originally came from `source`
-`cancel`   | `el, source`            | `el` was dragged but ended up at it's original position in the original `source`
-`end`      | `el`                    | Dragging event for `el` ended with either `cancel` or `drop`
+Event Name | Listener Arguments             | Event Description
+-----------|--------------------------------|-------------------
+`drag`     | `el, source`                   | `el` was lifted from `source`
+`move`     | `el, parent, source, replaced` | `el` changed position and now has parent `parent` and originally came from `source`. If defined `replaced` was replaced by `el`.
+`drop`     | `el, target, source`           | `el` was dropped into `target`, and originally came from `source`
+`cancel`   | `el, source`                   | `el` was dragged but ended up at it's original position in the original `source`
+`end`      | `el`                           | Dragging event for `el` ended with either `cancel` or `drop`
 
 
 ## Planned functionality
 - Support IE
 - Support both horizontal and vertical placement (now only horizontal is fully supported)
-- Support placing at the bottom of the parent container when the placed child is smaller than the child that was originally at that position
 - Support mobile
 - Support removing
 
