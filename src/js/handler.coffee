@@ -315,8 +315,11 @@ class Handler
 		# Prevent the document from selecting while dragging
 		@addClass document.body, 'dragify--body'
 
+		# Allow for a transition in opacity
+		@addClass @node, 'dragify--transition' if @dragify.options.transition
+
 		# Make the original node opague
-		@addClass @node, 'dragify--transition dragify--opaque'
+		@addClass @node, 'dragify--opaque'
 
 
 	reset: ->
@@ -348,7 +351,7 @@ class Handler
 			,500)
 
 		# Remove using the reference to the 'old' node in case someone starts dragging a new node within the setTimeout time limit of 500ms
-		remove @node
+		remove @node if @dragify.options.transition
 
 		# Check if the node didn't actually change position
 		if @data.source is @node.parentNode and @data.index is @getIndex @node
