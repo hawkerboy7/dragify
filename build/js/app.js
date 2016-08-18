@@ -10,15 +10,25 @@ Dragify = (function(superClass) {
   extend(Dragify, superClass);
 
   function Dragify(containers, options) {
-    var ref, ref1;
+    var ref, ref1, x, y;
     this.containers = containers;
     Dragify.__super__.constructor.apply(this, arguments);
     this.options = {
       threshold: {
-        x: (options != null ? (ref = options.threshold) != null ? ref.x : void 0 : void 0) || 3,
-        y: (options != null ? (ref1 = options.threshold) != null ? ref1.y : void 0 : void 0) || 3
-      }
+        x: 3,
+        y: 3
+      },
+      transition: true
     };
+    if ((options != null ? options.transition : void 0) != null) {
+      this.options.transition = options.transition;
+    }
+    if ((x = options != null ? (ref = options.threshold) != null ? ref.x : void 0 : void 0) != null) {
+      this.options.threshold.x = x;
+    }
+    if ((y = options != null ? (ref1 = options.threshold) != null ? ref1.y : void 0 : void 0) != null) {
+      this.options.threshold.y = y;
+    }
     new Handler(this);
   }
 
