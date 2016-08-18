@@ -40,6 +40,9 @@ class Handler
 			parent    : null
 			treshhold : {}
 
+		# Store previously found target and valid targets
+		@previous = {}
+
 
 	listeners: ->
 
@@ -85,10 +88,7 @@ class Handler
 		# Store the source where the node came from
 		@data.source = node.parentNode
 
-		# Keep track of the current parent for the 'over' event
-		@data.parent = node.parentNode
-
-		# Keep track of the current parent for the 'over' event
+		# Store the current index of the node
 		@data.index = @getIndex node
 
 		# Store mousedown position
@@ -173,41 +173,67 @@ class Handler
 		# Get node behind the cursor
 		target = document.elementFromPoint @e.x, @e.y
 
-		# Stop if the target is the same as the previous target
-		return if target is @target
+		# Stop if the target is the same as the previous target (outside viewport target is null)
+		return if target and target is @previous.target
 
 		# Store the new node
-		@target = target
+		@previous.target = target
 
-		# Only switch if a target is defined (outside viewport target is null)
-		@switch() if @target
+		# Check if new target is valid and make sure it returns the to-be-dragged target and not one of it's children
+		return if not target = @valid target
+
+		# Stop if the valid target is the same as the previous valid target
+		return if target is @previous.valid
+
+		# Act as if the original node does not exist
+		return if @node is target
+
+		# Store the new node
+		@previous.valid = target
+
+		# Switch because a new valid target has been found
+		@switch target
 
 
-	switch: ->
+	valid: (target) ->
 
-		# Make sure the 'over' event only gets trigger when hover over a new element the current parent doesnt count
-		if @target isnt @data.parent
+		# By default assume is not valid
+		valid = false
 
-			# Store the new parent node
-			@data.parent = @target.parentNode
+		# Check if this target is a valid dragify parent
+		valid = target if -1 isnt @dragify.containers.indexOf target
 
-			# Trigger the 'over' event indicating a hover over another element
-			@dragify.emit 'over', @node, @target, @data.source
+		# Find-correct-parent loop function
+		find = (el) =>
 
-		# Assume target is not a container to drop in
-		found = false
+			# Check if this target's parent node is a valid dragify parent
+			if -1 is @dragify.containers.indexOf el.parentNode
 
-		# Loop over all containers
-		for parent in @dragify.containers
+				# Check if this element's parent is valid if the parent exists
+				find el.parentNode if el.parentNode
 
-			# Check if the target is a child of a valid drop container
-			(found = true; break) if @target?.parentNode is parent
+			else
 
-			# Determin where to place the @node if the parent doesn't contain it yet
-			return @transfer() if @target is parent and @node.parentNode isnt parent
+				# Store the valid element
+				valid = el
 
-		# Don't do anything if the parent wasn't one of the provided container parents
-		return if not found
+		# Start the find loop
+		find target
+
+		# Return a valid element or false
+		valid
+
+
+	switch: (@target) ->
+
+		# Target is a parent
+		if -1 isnt @dragify.containers.indexOf @target
+
+			# Transfer to a new parent if the node's parent is different from the target
+			@transfer() if @node.parentNode isnt @target
+
+			# Don't do anything if the node's parent is targeted
+			return
 
 		# Check if the target or node has a higher index but first also check if the node is already within this parent
 		if @target.parentNode isnt @node.parentNode or (@getIndex @node) > (@getIndex @target)
@@ -225,8 +251,11 @@ class Handler
 		# Insert after the target
 		parent.insertBefore node, target
 
+		# Determin if placed in a parent or replaced another element
+		replaced = if @target isnt parent then @target else undefined
+
 		# The original element is being moved
-		@dragify.emit 'move', @node, @node.parentNode, @data.source
+		@dragify.emit 'move', @node, @node.parentNode, @data.source, replaced
 
 
 	getIndex: (node) ->
@@ -293,6 +322,9 @@ class Handler
 
 
 	set: ->
+
+		# Act as if the node's parent was the previous valid target to prevent the switch from triggering on this parent on drag start
+		@previous.valid = @node.parentNode
 
 		# Start the dragging
 		@dragify.emit 'drag', @node, @node.parentNode
