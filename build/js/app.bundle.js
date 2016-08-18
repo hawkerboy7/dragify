@@ -106,7 +106,7 @@ Handler = (function() {
   };
 
   Handler.prototype.setData = function() {
-    return this.data = {
+    this.data = {
       index: null,
       start: {},
       offset: {},
@@ -114,6 +114,7 @@ Handler = (function() {
       parent: null,
       treshhold: {}
     };
+    return this.previous = {};
   };
 
   Handler.prototype.listeners = function() {
@@ -161,7 +162,6 @@ Handler = (function() {
     }
     this.node = node;
     this.data.source = node.parentNode;
-    this.data.parent = node.parentNode;
     this.data.index = this.getIndex(node);
     this.data.start.x = ev.x || ev.clientX;
     this.data.start.y = ev.y || ev.clientY;
@@ -228,34 +228,50 @@ Handler = (function() {
     var target;
     this.mirror.style.transform = "translate(" + (this.e.x - this.data.offset.x) + "px," + (this.e.y - this.data.offset.y) + "px)";
     target = document.elementFromPoint(this.e.x, this.e.y);
-    if (target === this.target) {
+    if (target && target === this.previous.target) {
       return;
     }
-    this.target = target;
-    if (this.target) {
-      return this["switch"]();
+    this.previous.target = target;
+    if (!(target = this.valid(target))) {
+      return;
     }
+    if (target === this.previous.valid) {
+      return;
+    }
+    if (this.node === target) {
+      return;
+    }
+    this.previous.valid = target;
+    return this["switch"](target);
   };
 
-  Handler.prototype["switch"] = function() {
-    var found, i, len, parent, ref, ref1;
-    if (this.target !== this.data.parent) {
-      this.data.parent = this.target.parentNode;
-      this.dragify.emit('over', this.node, this.target, this.data.source);
+  Handler.prototype.valid = function(target) {
+    var find, valid;
+    valid = false;
+    if (-1 !== this.dragify.containers.indexOf(target)) {
+      valid = target;
     }
-    found = false;
-    ref = this.dragify.containers;
-    for (i = 0, len = ref.length; i < len; i++) {
-      parent = ref[i];
-      if (((ref1 = this.target) != null ? ref1.parentNode : void 0) === parent) {
-        found = true;
-        break;
+    find = (function(_this) {
+      return function(el) {
+        if (-1 === _this.dragify.containers.indexOf(el.parentNode)) {
+          if (el.parentNode) {
+            return find(el.parentNode);
+          }
+        } else {
+          return valid = el;
+        }
+      };
+    })(this);
+    find(target);
+    return valid;
+  };
+
+  Handler.prototype["switch"] = function(target1) {
+    this.target = target1;
+    if (-1 !== this.dragify.containers.indexOf(this.target)) {
+      if (this.node.parentNode !== this.target) {
+        this.transfer();
       }
-      if (this.target === parent && this.node.parentNode !== parent) {
-        return this.transfer();
-      }
-    }
-    if (!found) {
       return;
     }
     if (this.target.parentNode !== this.node.parentNode || (this.getIndex(this.node)) > (this.getIndex(this.target))) {
@@ -266,8 +282,10 @@ Handler = (function() {
   };
 
   Handler.prototype.insert = function(parent, node, target) {
+    var replaced;
     parent.insertBefore(node, target);
-    return this.dragify.emit('move', this.node, this.node.parentNode, this.data.source);
+    replaced = this.target !== parent ? this.target : void 0;
+    return this.dragify.emit('move', this.node, this.node.parentNode, this.data.source, replaced);
   };
 
   Handler.prototype.getIndex = function(node) {
@@ -323,6 +341,7 @@ Handler = (function() {
 
   Handler.prototype.set = function() {
     var clone;
+    this.previous.valid = this.node.parentNode;
     this.dragify.emit('drag', this.node, this.node.parentNode);
     this.mirror.appendChild(clone = this.node.cloneNode(true));
     clone.style.width = this.node.offsetWidth + "px";
