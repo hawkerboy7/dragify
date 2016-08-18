@@ -117,14 +117,13 @@ Event Name | Listener Arguments             | Event Description
 -----------|--------------------------------|-------------------
 `drag`     | `el, source`                   | `el` was lifted from `source`
 `move`     | `el, parent, source, replaced` | `el` changed position and now has parent `parent` and originally came from `source`. If defined `replaced` was replaced by `el`.
-`drop`     | `el, target, source`           | `el` was dropped into `target`, and originally came from `source`
+`drop`     | `el, parent, source`           | `el` was dropped into `parent`, and originally came from `source`
 `cancel`   | `el, source`                   | `el` was dragged but ended up at it's original position in the original `source`
 `end`      | `el`                           | Dragging event for `el` ended with either `cancel` or `drop`
 
 
 ## Planned functionality
 - Support IE
-- Support both horizontal and vertical placement (now only horizontal is fully supported)
 - Support mobile
 - Support removing
 
