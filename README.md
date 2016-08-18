@@ -84,6 +84,21 @@ var dragify = new Dragify(containers, options);
 ```
 *The user can now mousedown on an element and move the mouse 20px left right up and down from it's original starting point before the actual drag will start.*
 
+#### `Options.transition`
+While dragging an element that element will be in transition. It's opacity will drop to `0.3`. When de element is dropped the element's opacity will become `1.0` again.
+By default this change in opacity will have a transition. However on `drop` the className `dragify--transition` (which enables this transition) will still be shown on the element due to the time it
+takes for the transition to finish. If you do not want this class to be added you can disable the transition class by setting this value to `false`.
+By default the transition is set to `true`.
+
+```js
+options = {
+	transition: false
+}
+
+var dragify = new Dragify(containers, options);
+```
+*Of course you can still add the transition properties to the element directly.*
+
 
 ### Events
 You can listen to the following events
