@@ -1,6 +1,6 @@
 {
   "name": "dragify",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Easily turn your DOM elements into dragable elements",
   "main": "./build/js/app.js",
   "author": "Dexter Esajas <dexter.esajas@gmail.com>",
