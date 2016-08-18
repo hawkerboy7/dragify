@@ -78,6 +78,7 @@ Handler = (function() {
   };
 
   Handler.prototype.mousedown = function(ev, node) {
+    var check, el, found, i, len, ref, x, y;
     if (ev.button !== 0) {
       return;
     }
@@ -87,9 +88,38 @@ Handler = (function() {
     this.data.index = this.getIndex(node);
     this.data.start.x = ev.x || ev.clientX;
     this.data.start.y = ev.y || ev.clientY;
+    x = ev.offsetX;
+    y = ev.offsetY;
+    if (ev.path) {
+      ref = ev.path;
+      for (i = 0, len = ref.length; i < len; i++) {
+        el = ref[i];
+        if (el === node) {
+          found = true;
+          break;
+        }
+        x += el.offsetLeft;
+        y += el.offsetTop;
+      }
+    } else {
+      check = function(target) {
+        if (target === node) {
+          return found = true;
+        }
+        x += target.offsetLeft;
+        y += target.offsetTop;
+        if (target.parentNode) {
+          return check(target.parentNode);
+        }
+      };
+      check(ev.target);
+    }
+    if (!found) {
+      return this.error(2);
+    }
     this.data.offset = {
-      x: ev.offsetX,
-      y: ev.offsetY
+      x: x,
+      y: y
     };
     return window.addEventListener('mousemove', this.mousemove);
   };
@@ -97,6 +127,7 @@ Handler = (function() {
   Handler.prototype.mousemove = function(e1) {
     var base, base1;
     this.e = e1;
+    this.e.preventDefault();
     (base = this.e).x || (base.x = this.e.clientX);
     (base1 = this.e).y || (base1.y = this.e.clientY);
     if (!this.active) {
@@ -158,8 +189,8 @@ Handler = (function() {
   };
 
   Handler.prototype.insert = function(parent, node, target) {
-    this.dragify.emit('move', this.node, this.node.parentNode, this.data.source);
-    return parent.insertBefore(node, target);
+    parent.insertBefore(node, target);
+    return this.dragify.emit('move', this.node, this.node.parentNode, this.data.source);
   };
 
   Handler.prototype.getIndex = function(node) {

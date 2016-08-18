@@ -17,7 +17,6 @@ Will be created soon
 - Easy to set up
 - Uses hardware acceleration
 - The possibility to provide a [**threshold**][1]
-- Only one dependency (['The MiniEventEmitter'][2] which does not have any other dependencies)
 - The 'to-be-dragged' element provides visual feedback while dragging
 
 
@@ -34,7 +33,7 @@ var dragify = new Dragify(containers,options);
 ```
 
 ### `Containers`
-`containers` is an array of the parents of the DOM elements you which to `dragify`.
+`containers` is an array of the parents of the DOM elements you wish to `dragify`.
 
 ```html
 
@@ -69,11 +68,13 @@ var dragify = new Dragify(containers);
 #### `Options.threshold`
 The threshold option was created to make sure a **click** on a element **doesn't turn into a drag** because the user can't keep it's mouse steady during the click.
 Lots of users want to click on an element but instead drag it, even though it's just a little distance.
-This threshold option allows you to determin how much a user is allowed to move **before** the actual drag starts.
+This threshold option allows you to determine how much a user is allowed to move **before** the actual drag starts.
+As long as the drag doesn't start all events the element is listening for will still be triggered as if the drag attempt has not happened yet.
+By default a threshold of `3px` is applied in both directions.
 
 ```js
 options = {
-	treshhold: {
+	threshold: {
 		x: 20
 		y: 20
 	}
@@ -81,8 +82,7 @@ options = {
 
 var dragify = new Dragify(containers, options);
 ```
-*The user can now mousedown on an element and move the mouse 20px left right up and down from it's original starting point before the actual drag will start*
-
+*The user can now mousedown on an element and move the mouse 20px left right up and down from it's original starting point before the actual drag will start.*
 
 
 ### Events
@@ -112,26 +112,17 @@ Event Name | Listener Arguments      | Event Description
 ## Planned functionality
 - Support IE
 - Support both horizontal and vertical placement (now only horizontal is fully supported)
-- Support removing
 - Support placing at the bottom of the parent container when the placed child is smaller than the child that was originally at that position
 - Support mobile
-
-
-## Planned functionality
-- Support IE
-- Support both horizontal and vertical placement (now only horizontal is fully supported)
 - Support removing
-- Support placing at the bottom of the parent container when the placed child is smaller than the child that was originally at that position
-- Support mobile
 
 
 ## Inspiration
-I have used [Dragula][3] and liked its simplicity but I wanted hardware acceleration and a threshold.
+I have used [Dragula][2] and liked its simplicity but I wanted hardware acceleration and a threshold.
 The lack of these functionalities in dragula causes some discomfort for my own use cases.
 If required I will try to add more of the functionality that Dragula provides, however I do not focus on supporting < IE10.
 PR's for supporting < IE10 however I will take into consideration.
 
 
-[1]: #threshold
-[2]: https://github.com/hawkerboy7/mini-event-emitter
-[3]: https://github.com/bevacqua/dragula/
+[1]: #optionsthreshold
+[2]: https://github.com/bevacqua/dragula/
