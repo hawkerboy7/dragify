@@ -17,7 +17,7 @@ Error = (function() {
       msg += "First argument 'Containers' must be an array";
     }
     if (id === 2) {
-      msg += "Event name must be a string";
+      msg += "Dragify was unable to find the correct offset, please report an issue on https://github.com/hawkerboy7/dragify/issues/new. Please provide an example in which this error occurs";
     }
     if (console.warn) {
       return console.warn(msg);
