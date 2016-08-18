@@ -95,10 +95,47 @@ class Handler
 		@data.start.x = ev.x || ev.clientX
 		@data.start.y = ev.y || ev.clientY
 
+		# Store offset of the click
+		x = ev.offsetX
+		y = ev.offsetY
+
+		# Path available in chrome
+		if ev.path
+
+			# Loop over the path to check if the dragified element was pressed or one of it's children('s children etc.)
+			for el in ev.path
+
+				# Stop checkking
+				if el is node
+					found = true
+					break
+
+				# Add to the offset so the position relative to the dragified element gets calculated
+				x += el.offsetLeft
+				y += el.offsetTop
+		else
+
+			check = (target) ->
+
+				return found = true if target is node
+
+				# Add to the offset so the position relative to the dragified element gets calculated
+				x += target.offsetLeft
+				y += target.offsetTop
+
+				# Only check parent again if the parent exists
+				check target.parentNode if target.parentNode
+
+			# Start the loop that cho
+			check ev.target
+
+		# The node must always be found otherwise something is wrong with the path or the assumtion the node will always be avaiable in the path
+		return @error 2 if not found
+
 		# Determin the mousedown position within the node
 		@data.offset =
-			x : ev.offsetX
-			y : ev.offsetY
+			x : x
+			y : y
 
 		# Start listening for the mousemove event
 		window.addEventListener 'mousemove', @mousemove
@@ -106,6 +143,10 @@ class Handler
 
 	mousemove: (@e) =>
 
+		# Prevent any default actions while dragging (text-selection, cursor change)
+		@e.preventDefault()
+
+		# Fix for events that don't have a 'x' or 'y'
 		@e.x or= @e.clientX
 		@e.y or= @e.clientY
 
@@ -181,11 +222,11 @@ class Handler
 
 	insert: (parent, node, target) ->
 
-		# The original element is being moved
-		@dragify.emit 'move', @node, @node.parentNode, @data.source
-
 		# Insert after the target
 		parent.insertBefore node, target
+
+		# The original element is being moved
+		@dragify.emit 'move', @node, @node.parentNode, @data.source
 
 
 	getIndex: (node) ->
