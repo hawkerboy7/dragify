@@ -125,16 +125,15 @@ Handler = (function() {
   };
 
   Handler.prototype.mousemove = function(e1) {
-    var base, base1;
     this.e = e1;
     this.e.preventDefault();
-    (base = this.e).x || (base.x = this.e.clientX);
-    (base1 = this.e).y || (base1.y = this.e.clientY);
+    this.e.X = this.e.clientX;
+    this.e.Y = this.e.clientY;
     if (!this.active) {
-      if (Math.abs(this.e.x - this.data.start.x) > this.dragify.options.threshold.x) {
+      if (Math.abs(this.e.X - this.data.start.x) > this.dragify.options.threshold.x) {
         this.active = true;
       }
-      if (Math.abs(this.e.y - this.data.start.y) > this.dragify.options.threshold.y) {
+      if (Math.abs(this.e.Y - this.data.start.y) > this.dragify.options.threshold.y) {
         this.active = true;
       }
       if (!this.active) {
@@ -149,8 +148,8 @@ Handler = (function() {
 
   Handler.prototype.position = function() {
     var target;
-    this.mirror.style.transform = "translate(" + (this.e.x - this.data.offset.x) + "px," + (this.e.y - this.data.offset.y) + "px)";
-    target = document.elementFromPoint(this.e.x, this.e.y);
+    this.mirror.style.transform = "translate(" + (this.e.X - this.data.offset.x) + "px," + (this.e.Y - this.data.offset.y) + "px)";
+    target = document.elementFromPoint(this.e.X, this.e.Y);
     if (target && target === this.previous.target) {
       return;
     }
