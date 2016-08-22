@@ -1,10 +1,22 @@
-Events = require 'mini-event-emitter'
+# Require | Browserify, Node
+MiniEventEmitter = require 'mini-event-emitter'
 
 Handler = require './handler'
 
 
 
-class Dragify extends Events
+# Check if MiniEventEmitter is defined
+if not MiniEventEmitter?
+
+	# Make sure the MiniEventEmitter is defined
+	msg = 'Dragify depends on the MiniEventEmitter.\nhttps://github.com/hawkerboy7/mini-event-emitter\nDefine it before Dragify'
+
+	# Log the message to the console (as a warning if available)
+	if console.warn then console.warn msg else console.log msg
+
+
+
+class Dragify extends MiniEventEmitter
 
 	constructor: (@containers, options) ->
 
@@ -36,4 +48,12 @@ class Dragify extends Events
 
 
 
+# --------------------------------------------------
+# Expose
+# --------------------------------------------------
+
+# Require | Browserify, Node
 module.exports = Dragify
+
+# Distribution | Browser
+# window.Dragify = Dragify
