@@ -55,8 +55,8 @@ var dragify = new Dragify(containers,options);
 ```js
 
 containers = [
-	document.getElementsByClassName("parent-one"),
-	document.getElementsByClassName("parent-two")
+	document.getElementsByClassName("parent-one")[0],
+	document.getElementsByClassName("parent-two")[0]
 ]
 
 var dragify = new Dragify(containers);
