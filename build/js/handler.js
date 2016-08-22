@@ -170,6 +170,9 @@ Handler = (function() {
 
   Handler.prototype.valid = function(target) {
     var find, valid;
+    if (!target) {
+      return;
+    }
     valid = false;
     if (-1 !== this.dragify.containers.indexOf(target)) {
       valid = target;
