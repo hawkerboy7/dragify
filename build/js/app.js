@@ -1,10 +1,19 @@
-var Dragify, Events, Handler,
+var Dragify, Handler, MiniEventEmitter, msg,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-Events = require('mini-event-emitter');
+MiniEventEmitter = require('mini-event-emitter');
 
 Handler = require('./handler');
+
+if (MiniEventEmitter == null) {
+  msg = 'Dragify depends on the MiniEventEmitter.\nhttps://github.com/hawkerboy7/mini-event-emitter\nDefine it before Dragify';
+  if (console.warn) {
+    console.warn(msg);
+  } else {
+    console.log(msg);
+  }
+}
 
 Dragify = (function(superClass) {
   extend(Dragify, superClass);
@@ -34,6 +43,6 @@ Dragify = (function(superClass) {
 
   return Dragify;
 
-})(Events);
+})(MiniEventEmitter);
 
 module.exports = Dragify;

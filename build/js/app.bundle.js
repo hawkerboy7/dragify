@@ -1,11 +1,20 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var Dragify, Events, Handler,
+var Dragify, Handler, MiniEventEmitter, msg,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-Events = require('mini-event-emitter');
+MiniEventEmitter = require('mini-event-emitter');
 
 Handler = require('./handler');
+
+if (MiniEventEmitter == null) {
+  msg = 'Dragify depends on the MiniEventEmitter.\nhttps://github.com/hawkerboy7/mini-event-emitter\nDefine it before Dragify';
+  if (console.warn) {
+    console.warn(msg);
+  } else {
+    console.log(msg);
+  }
+}
 
 Dragify = (function(superClass) {
   extend(Dragify, superClass);
@@ -35,7 +44,7 @@ Dragify = (function(superClass) {
 
   return Dragify;
 
-})(Events);
+})(MiniEventEmitter);
 
 module.exports = Dragify;
 
@@ -247,6 +256,9 @@ Handler = (function() {
 
   Handler.prototype.valid = function(target) {
     var find, valid;
+    if (!target) {
+      return;
+    }
     valid = false;
     if (-1 !== this.dragify.containers.indexOf(target)) {
       valid = target;

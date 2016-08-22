@@ -1,3 +1,87 @@
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var Dragify, Handler, msg,
+  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  hasProp = {}.hasOwnProperty;
+
+Handler = require('./handler');
+
+if (typeof MiniEventEmitter === "undefined" || MiniEventEmitter === null) {
+  msg = 'Dragify depends on the MiniEventEmitter.\nhttps://github.com/hawkerboy7/mini-event-emitter\nDefine it before Dragify';
+  if (console.warn) {
+    console.warn(msg);
+  } else {
+    console.log(msg);
+  }
+}
+
+Dragify = (function(superClass) {
+  extend(Dragify, superClass);
+
+  function Dragify(containers, options) {
+    var ref, ref1, x, y;
+    this.containers = containers;
+    Dragify.__super__.constructor.apply(this, arguments);
+    this.options = {
+      threshold: {
+        x: 3,
+        y: 3
+      },
+      transition: true
+    };
+    if ((options != null ? options.transition : void 0) != null) {
+      this.options.transition = options.transition;
+    }
+    if ((x = options != null ? (ref = options.threshold) != null ? ref.x : void 0 : void 0) != null) {
+      this.options.threshold.x = x;
+    }
+    if ((y = options != null ? (ref1 = options.threshold) != null ? ref1.y : void 0 : void 0) != null) {
+      this.options.threshold.y = y;
+    }
+    new Handler(this);
+  }
+
+  return Dragify;
+
+})(MiniEventEmitter);
+
+window.Dragify = Dragify;
+
+},{"./handler":3}],2:[function(require,module,exports){
+var Error;
+
+Error = (function() {
+  function Error(dragify) {
+    var ref;
+    this.dragify = dragify;
+    this.block = !((ref = this.dragify.options) != null ? ref.error : void 0);
+  }
+
+  Error.prototype.error = function(id) {
+    var msg;
+    if (this.block) {
+      return;
+    }
+    msg = "Dragify ~ ";
+    if (id === 1) {
+      msg += "First argument 'Containers' must be an array";
+    }
+    if (id === 2) {
+      msg += "Dragify was unable to find the correct offset, please report an issue on https://github.com/hawkerboy7/dragify/issues/new. Please provide an example in which this error occurs";
+    }
+    if (console.warn) {
+      return console.warn(msg);
+    } else {
+      return console.log(msg);
+    }
+  };
+
+  return Error;
+
+})();
+
+module.exports = Error;
+
+},{}],3:[function(require,module,exports){
 var Error, Handler,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
@@ -338,3 +422,5 @@ Handler = (function() {
 })();
 
 module.exports = Handler;
+
+},{"./error":2}]},{},[1])
