@@ -147,14 +147,14 @@ class Handler
 		@e.preventDefault()
 
 		# Fix for events that don't have a 'x' or 'y'
-		@e.x or= @e.clientX
-		@e.y or= @e.clientY
+		@e.X = @e.clientX
+		@e.Y = @e.clientY
 
 		if not @active
 
 			# Check if the tresh hold has been passed
-			@active = true if Math.abs(@e.x-@data.start.x) > @dragify.options.threshold.x
-			@active = true if Math.abs(@e.y-@data.start.y) > @dragify.options.threshold.y
+			@active = true if Math.abs(@e.X-@data.start.x) > @dragify.options.threshold.x
+			@active = true if Math.abs(@e.Y-@data.start.y) > @dragify.options.threshold.y
 
 			return if not @active
 
@@ -168,10 +168,10 @@ class Handler
 	position: ->
 
 		# Update mirror position using transform
-		@mirror.style.transform = "translate(#{@e.x-@data.offset.x}px,#{@e.y-@data.offset.y}px)"
+		@mirror.style.transform = "translate(#{@e.X-@data.offset.x}px,#{@e.Y-@data.offset.y}px)"
 
 		# Get node behind the cursor
-		target = document.elementFromPoint @e.x, @e.y
+		target = document.elementFromPoint @e.X, @e.Y
 
 		# Stop if the target is the same as the previous target (outside viewport target is null)
 		return if target and target is @previous.target
