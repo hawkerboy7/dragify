@@ -197,6 +197,9 @@ class Handler
 
 	valid: (target) ->
 
+		# Target must be defined (no dragging outside the viewport)
+		return if not target
+
 		# By default assume is not valid
 		valid = false
 
