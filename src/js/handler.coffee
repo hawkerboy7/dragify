@@ -85,14 +85,14 @@ class Handler
 		check = (el) =>
 
 			try
-				@dragify.containers.indexOf(el.parentNode) isnt -1 or @dragify.options.isContainer el
+				@dragify.containers.indexOf(el) isnt -1 or @dragify.options.isContainer el
 			catch e
 				false
 
 		validate = (node) =>
 
 			# Check if the parent of this node is a valid dragify container
-			return node if check node
+			return node if check node.parentNode
 
 			return validate node.parentNode if node.parentNode
 
