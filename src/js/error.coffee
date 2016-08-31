@@ -14,7 +14,11 @@ class Error
 		# Prefix all error messages with the MiniEventEmitter text
 		msg = "Dragify ~ "
 
-		if id is 1 then msg += "First argument 'Containers' must be an array"
+		# Initialization
+		if id is 1.1 then msg += "First argument 'Containers' must be an array"
+		if id is 1.2 then msg += "'isContainer' must be a function"
+
+		# During running somewhere
 		if id is 2 then msg += "Dragify was unable to find the correct offset, please report an issue on https://github.com/hawkerboy7/dragify/issues/new. Please provide an example in which this error occurs"
 
 		# Log the message to the console (as a warning if available)

@@ -1,18 +1,18 @@
 # Require | Browserify, Node
-MiniEventEmitter = require 'mini-event-emitter'
+MiniEventEmitter = require "mini-event-emitter"
 
-Handler = require './handler'
+Handler = require "./handler"
 
 
+
+# Log the message to the console (as a warning if available)
+log = (msg) -> if console.warn then console.warn msg else console.log msg
 
 # Check if MiniEventEmitter is defined
 if not MiniEventEmitter?
 
 	# Make sure the MiniEventEmitter is defined
-	msg = 'Dragify depends on the MiniEventEmitter.\nhttps://github.com/hawkerboy7/mini-event-emitter\nDefine it before Dragify'
-
-	# Log the message to the console (as a warning if available)
-	if console.warn then console.warn msg else console.log msg
+	log "Dragify ~ Dragify depends on the MiniEventEmitter.\nhttps://github.com/hawkerboy7/mini-event-emitter\nDefine it before Dragify"
 
 
 
@@ -23,6 +23,20 @@ class Dragify extends MiniEventEmitter
 		# Run Events constructor to setup the mini event emitter as this classes prototype
 		super
 
+		# In case the second argument options is not provided the first argument is regarded as the options param
+		options = @containers || {} if not options
+
+		# Retrieve containers from the options or set a default
+		@containers = options.containers || []
+
+		# Make sure containers are provided or can be found dynamically
+		return log "Dragify ~ You provided neither the `options.containers` nor the 'isContainer` function. At least one is required." if @containers.length is 0 and not options.isContainer?
+
+		# --------------------------------------------------
+		# Default options
+		# --------------------------------------------------
+
+		# Define options used within dragula
 		@options =
 
 			# Determins how much you can move in each direction after mousedown before the actual drag will start
@@ -36,12 +50,23 @@ class Dragify extends MiniEventEmitter
 			# is unwanted you can remove it by settings this value to false
 			transition: true
 
+			# Define logic which whould allow an element to be a valid parent container
+			isContainer: (el) -> false
+
+
+		# --------------------------------------------------
+		# Overwrite options if user provided different options
+		# --------------------------------------------------
+
 		# Assign transition option
-		@options.transition = options.transition if options?.transition?
+		@options.transition = options.transition if options.transition?
 
 		# Assign threshold options
-		@options.threshold.x = x if (x = options?.threshold?.x)?
-		@options.threshold.y = y if (y = options?.threshold?.y)?
+		@options.threshold.x = x if (x = options.threshold?.x)?
+		@options.threshold.y = y if (y = options.threshold?.y)?
+
+		# Assign the isContainer function
+		@options.isContainer = options.isContainer if options.isContainer?
 
 		# Create handler doing all private work
 		new Handler this
