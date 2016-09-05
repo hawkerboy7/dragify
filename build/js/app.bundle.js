@@ -1,19 +1,22 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var Dragify, Handler, MiniEventEmitter, msg,
+var Dragify, Handler, MiniEventEmitter, log,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-MiniEventEmitter = require('mini-event-emitter');
+MiniEventEmitter = require("mini-event-emitter");
 
-Handler = require('./handler');
+Handler = require("./handler");
+
+log = function(msg) {
+  if (console.warn) {
+    return console.warn(msg);
+  } else {
+    return console.log(msg);
+  }
+};
 
 if (MiniEventEmitter == null) {
-  msg = 'Dragify depends on the MiniEventEmitter.\nhttps://github.com/hawkerboy7/mini-event-emitter\nDefine it before Dragify';
-  if (console.warn) {
-    console.warn(msg);
-  } else {
-    console.log(msg);
-  }
+  log("Dragify ~ Dragify depends on the MiniEventEmitter.\nhttps://github.com/hawkerboy7/mini-event-emitter\nDefine it before Dragify");
 }
 
 Dragify = (function(superClass) {
@@ -23,21 +26,34 @@ Dragify = (function(superClass) {
     var ref, ref1, x, y;
     this.containers = containers;
     Dragify.__super__.constructor.apply(this, arguments);
+    if (!options) {
+      options = this.containers || {};
+    }
+    this.containers = options.containers || [];
+    if (this.containers.length === 0 && (options.isContainer == null)) {
+      return log("Dragify ~ You provided neither the `options.containers` nor the 'isContainer` function. At least one is required.");
+    }
     this.options = {
       threshold: {
         x: 3,
         y: 3
       },
-      transition: true
+      transition: true,
+      isContainer: function(el) {
+        return false;
+      }
     };
-    if ((options != null ? options.transition : void 0) != null) {
+    if (options.transition != null) {
       this.options.transition = options.transition;
     }
-    if ((x = options != null ? (ref = options.threshold) != null ? ref.x : void 0 : void 0) != null) {
+    if ((x = (ref = options.threshold) != null ? ref.x : void 0) != null) {
       this.options.threshold.x = x;
     }
-    if ((y = options != null ? (ref1 = options.threshold) != null ? ref1.y : void 0 : void 0) != null) {
+    if ((y = (ref1 = options.threshold) != null ? ref1.y : void 0) != null) {
       this.options.threshold.y = y;
+    }
+    if (options.isContainer != null) {
+      this.options.isContainer = options.isContainer;
     }
     new Handler(this);
   }
@@ -64,10 +80,13 @@ Error = (function() {
       return;
     }
     msg = "Dragify ~ ";
-    if (id === 1) {
+    if (id === 1.1) {
       msg += "First argument 'Containers' must be an array";
     }
-    if (id === 2) {
+    if (id === 1.2) {
+      msg += "'isContainer' must be a function";
+    }
+    if (id === 2.1) {
       msg += "Dragify was unable to find the correct offset, please report an issue on https://github.com/hawkerboy7/dragify/issues/new. Please provide an example in which this error occurs";
     }
     if (console.warn) {
@@ -107,8 +126,14 @@ Handler = (function() {
   };
 
   Handler.prototype.setup = function() {
+    if (!this.dragify.containers) {
+      this.dragify.containers = [];
+    }
     if (this.dragify.containers.constructor !== Array) {
-      return this.error(1);
+      return this.error(1.1);
+    }
+    if (!typeof this.dragify.options.isContainer === "function") {
+      return this.error(1.2);
     }
     this.setData();
     return this.create();
@@ -127,13 +152,8 @@ Handler = (function() {
   };
 
   Handler.prototype.listeners = function() {
-    var container, i, len, ref;
-    ref = this.dragify.containers;
-    for (i = 0, len = ref.length; i < len; i++) {
-      container = ref[i];
-      this.listen(container);
-    }
-    return window.addEventListener('mouseup', this.mouseup);
+    window.addEventListener('mouseup', this.mouseup);
+    return window.addEventListener('mousedown', this.mousedown);
   };
 
   Handler.prototype.mouseup = function(e) {
@@ -146,68 +166,88 @@ Handler = (function() {
     }
   };
 
-  Handler.prototype.listen = function(container) {
-    var i, len, node, ref, results, set;
-    set = (function(_this) {
-      return function(node) {
-        return node.addEventListener('mousedown', function(ev) {
-          return _this.mousedown(ev, node);
-        });
-      };
-    })(this);
-    ref = container.childNodes;
-    results = [];
-    for (i = 0, len = ref.length; i < len; i++) {
-      node = ref[i];
-      results.push(set(node));
-    }
-    return results;
-  };
-
-  Handler.prototype.mousedown = function(ev, node) {
-    var check, el, found, i, len, ref, x, y;
+  Handler.prototype.mousedown = function(ev) {
+    var check, found, x, y;
     if (ev.button !== 0) {
       return;
     }
-    this.node = node;
-    this.data.source = node.parentNode;
-    this.data.index = this.getIndex(node);
-    this.data.start.x = ev.x || ev.clientX;
-    this.data.start.y = ev.y || ev.clientY;
+    if (!(this.node = this.validMousedown(ev.target))) {
+      return;
+    }
+    this.data.source = this.node.parentNode;
+    this.data.index = this.getIndex(this.node);
+    this.data.start.x = ev.clientX;
+    this.data.start.y = ev.clientY;
     x = ev.offsetX;
     y = ev.offsetY;
-    if (ev.path) {
-      ref = ev.path;
-      for (i = 0, len = ref.length; i < len; i++) {
-        el = ref[i];
-        if (el === node) {
-          found = true;
-          break;
-        }
-        x += el.offsetLeft;
-        y += el.offsetTop;
-      }
-    } else {
-      check = function(target) {
-        if (target === node) {
-          return found = true;
+    found = false;
+    check = (function(_this) {
+      return function(target) {
+        if (target === _this.node) {
+          return;
         }
         x += target.offsetLeft;
         y += target.offsetTop;
         if (target.parentNode) {
           return check(target.parentNode);
         }
+        return true;
       };
-      check(ev.target);
-    }
-    if (!found) {
-      return this.error(2);
+    })(this);
+    if (check(ev.target)) {
+      return this.error(2.1);
     }
     this.data.offset = {
       x: x,
       y: y
     };
     return window.addEventListener('mousemove', this.mousemove);
+  };
+
+  Handler.prototype.validMousedown = function(target) {
+    var check, validate;
+    check = (function(_this) {
+      return function(el) {
+        var e, error;
+        try {
+          return _this.validContainer(el);
+        } catch (error) {
+          e = error;
+          return false;
+        }
+      };
+    })(this);
+    validate = (function(_this) {
+      return function(node) {
+        if (check(node.parentNode)) {
+          return node;
+        }
+        if (node.parentNode) {
+          return validate(node.parentNode);
+        }
+        return false;
+      };
+    })(this);
+    return validate(target);
+  };
+
+  Handler.prototype.validContainer = function(el) {
+    if (!el || el === document) {
+      return false;
+    }
+    return this.dragify.containers.indexOf(el) !== -1 || this.dragify.options.isContainer(el);
+  };
+
+  Handler.prototype.getIndex = function(node) {
+    var child, i, index, len, ref;
+    ref = node.parentNode.childNodes;
+    for (index = i = 0, len = ref.length; i < len; index = ++i) {
+      child = ref[index];
+      if (child === node) {
+        return index;
+      }
+    }
+    return null;
   };
 
   Handler.prototype.mousemove = function(e1) {
@@ -240,7 +280,7 @@ Handler = (function() {
       return;
     }
     this.previous.target = target;
-    if (!(target = this.valid(target))) {
+    if (!(target = this.validParent(target))) {
       return;
     }
     if (target === this.previous.valid) {
@@ -253,33 +293,35 @@ Handler = (function() {
     return this["switch"](target);
   };
 
-  Handler.prototype.valid = function(target) {
+  Handler.prototype.validParent = function(target) {
     var find, valid;
     if (!target) {
       return;
     }
     valid = false;
-    if (-1 !== this.dragify.containers.indexOf(target)) {
+    if (this.validContainer(target)) {
       valid = target;
     }
     find = (function(_this) {
       return function(el) {
-        if (-1 === _this.dragify.containers.indexOf(el.parentNode)) {
+        if (_this.validContainer(el.parentNode)) {
+          return valid = el;
+        } else {
           if (el.parentNode) {
             return find(el.parentNode);
           }
-        } else {
-          return valid = el;
         }
       };
     })(this);
-    find(target);
+    if (!valid) {
+      find(target);
+    }
     return valid;
   };
 
   Handler.prototype["switch"] = function(target1) {
     this.target = target1;
-    if (-1 !== this.dragify.containers.indexOf(this.target)) {
+    if (this.validContainer(this.target)) {
       if (this.node.parentNode !== this.target) {
         this.transfer();
       }
@@ -297,18 +339,6 @@ Handler = (function() {
     parent.insertBefore(node, target);
     replaced = this.target !== parent ? this.target : void 0;
     return this.dragify.emit('move', this.node, this.node.parentNode, this.data.source, replaced);
-  };
-
-  Handler.prototype.getIndex = function(node) {
-    var child, i, index, len, ref;
-    ref = node.parentNode.childNodes;
-    for (index = i = 0, len = ref.length; i < len; index = ++i) {
-      child = ref[index];
-      if (child === node) {
-        return index;
-      }
-    }
-    return null;
   };
 
   Handler.prototype.transfer = function() {

@@ -13,10 +13,13 @@ Error = (function() {
       return;
     }
     msg = "Dragify ~ ";
-    if (id === 1) {
+    if (id === 1.1) {
       msg += "First argument 'Containers' must be an array";
     }
-    if (id === 2) {
+    if (id === 1.2) {
+      msg += "'isContainer' must be a function";
+    }
+    if (id === 2.1) {
       msg += "Dragify was unable to find the correct offset, please report an issue on https://github.com/hawkerboy7/dragify/issues/new. Please provide an example in which this error occurs";
     }
     if (console.warn) {
