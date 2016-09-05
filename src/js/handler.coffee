@@ -150,6 +150,9 @@ class Handler
 
 	validContainer: (el) ->
 
+		# Null or document are not valid containers to drop into
+		return false if not el or el is document
+
 		@dragify.containers.indexOf(el) isnt -1 or @dragify.options.isContainer el
 
 
