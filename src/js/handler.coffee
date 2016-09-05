@@ -25,10 +25,10 @@ class Handler
 		# Containers must be an array
 		return @error 1.1 if @dragify.containers.constructor isnt Array
 
-		# Containers must be an array
-		return @error 1.2 if typeof @dragify.options.isContainer is "function"
+		# isContainer must be a function
+		return @error 1.2 if not typeof @dragify.options.isContainer is "function"
 
-		# Set the  data storage var
+		# Set the data storage var
 		@setData()
 
 		# Create mirror container
@@ -71,21 +71,65 @@ class Handler
 		@reset() if @active
 
 
-	mousedown: (e) =>
+	mousedown: (ev) =>
 
-		# Check if this target has a valid parent in it's ancestry
-		if @target = @valid e.target
-			console.log 'valid target'
-		else
-			console.log "target not valid stop!"
+		# Only continue if left mouseclick
+		return if ev.button isnt 0
+
+		# Check if this target is a valid node or has a valid node in it's ancestry
+		return if not @node = @validMousedown ev.target
+
+		# Store the source where the node came from
+		@data.source = @node.parentNode
+
+		# Store the current index of the node
+		@data.index = @getIndex @node
+
+		# Store mousedown position
+		@data.start.x = ev.clientX
+		@data.start.y = ev.clientY
+
+		# Store offset of the click in the element
+		x = ev.offsetX
+		y = ev.offsetY
+
+		# Predefine found so it's available outside the check scope
+		found = false
+
+		# Correct for mousedown on a child (or it's children) of the @node
+		check = (target) =>
+
+			# Stop checking if the target is found
+			return if target is @node
+
+			# Add to the offset so the position relative to the dragified element gets calculated
+			x += target.offsetLeft
+			y += target.offsetTop
+
+			# Only check parent again if the parent exists
+			return check target.parentNode if target.parentNode
+
+			# No parent is found
+			true
+
+		# The node must always be found otherwise something is wrong with the path or the assumtion the node will always be avaiable in the path upto the window
+		return @error 2.1 if check ev.target
+
+		# Store the mousedown position within the node
+		@data.offset =
+			x : x
+			y : y
+
+		# Start listening for the mousemove event
+		window.addEventListener 'mousemove', @mousemove
 
 
-	valid: (target) ->
+	validMousedown: (target) ->
 
 		check = (el) =>
 
 			try
-				@dragify.containers.indexOf(el) isnt -1 or @dragify.options.isContainer el
+				@validContainer el
 			catch e
 				false
 
@@ -94,6 +138,7 @@ class Handler
 			# Check if the parent of this node is a valid dragify container
 			return node if check node.parentNode
 
+			# Try to validate this node's parent since the current node was not valid
 			return validate node.parentNode if node.parentNode
 
 			# No valid parent is found
@@ -103,257 +148,183 @@ class Handler
 		validate target
 
 
+	validContainer: (el) ->
 
-	# # Dragifyify all objects =D
-	# @listen container for container in @dragify.containers
+		@dragify.containers.indexOf(el) isnt -1 or @dragify.options.isContainer el
 
 
+	getIndex: (node) ->
 
-	# listen: (container) ->
+		(return index if child is node) for child, index in node.parentNode.childNodes
 
-	# 	# Function is used to keep a correct reference to the node
-	# 	set = (node) =>
+		null
 
-	# 		# Listen for a mousedown event on the child node
-	# 		node.addEventListener 'mousedown', (ev) => @mousedown ev, node
 
-	# 	# Listen to all child nodes of the provided container
-	# 	set node for node in container.childNodes
+	mousemove: (@e) =>
 
+		# Prevent any default actions while dragging (text-selection, cursor change)
+		@e.preventDefault()
 
-	# # mousedown: (ev, node) =>
+		# Store the X and Y position within the event
+		@e.X = @e.clientX
+		@e.Y = @e.clientY
 
-	# 	# Only continue if left mouseclick
-	# 	return if ev.button isnt 0
+		# If dragging has not started yet check if it needs to start
+		if not @active
 
-	# 	# Store the node that has been 'mousedowned' upon
-	# 	@node = node
+			# Check if the threshold has been passed
+			@active = true if Math.abs(@e.X-@data.start.x) > @dragify.options.threshold.x
+			@active = true if Math.abs(@e.Y-@data.start.y) > @dragify.options.threshold.y
 
-	# 	# Store the source where the node came from
-	# 	@data.source = node.parentNode
+			# Don't so anything if the threshold has not been passed yet
+			return if not @active
 
-	# 	# Store the current index of the node
-	# 	@data.index = @getIndex node
+			# Place the mirror in the DOM
+			@set()
 
-	# 	# Store mousedown position
-	# 	@data.start.x = ev.x || ev.clientX
-	# 	@data.start.y = ev.y || ev.clientY
+		# Set mirror's position
+		@position() if @active
 
-	# 	# Store offset of the click
-	# 	x = ev.offsetX
-	# 	y = ev.offsetY
 
-	# 	# Path available in chrome
-	# 	if ev.path
+	position: ->
 
-	# 		# Loop over the path to check if the dragified element was pressed or one of it's children('s children etc.)
-	# 		for el in ev.path
+		# Update mirror position using transform
+		@mirror.style.transform = "translate(#{@e.X-@data.offset.x}px,#{@e.Y-@data.offset.y}px)"
 
-	# 			# Stop checkking
-	# 			if el is node
-	# 				found = true
-	# 				break
+		# Get node behind the cursor
+		target = document.elementFromPoint @e.X, @e.Y
 
-	# 			# Add to the offset so the position relative to the dragified element gets calculated
-	# 			x += el.offsetLeft
-	# 			y += el.offsetTop
-	# 	else
+		# Do not do anything if the target is the same as the previous target or is undefined (outside viewport target is null)
+		return if target and target is @previous.target
 
-	# 		check = (target) ->
+		# Store the new node
+		@previous.target = target
 
-	# 			return found = true if target is node
+		# Check if new target is valid and make sure it returns the to-be-dragged target and not one of it's children or the parent container itself
+		return if not target = @validParent target
 
-	# 			# Add to the offset so the position relative to the dragified element gets calculated
-	# 			x += target.offsetLeft
-	# 			y += target.offsetTop
+		# Stop if the valid target is the same as the previous valid target
+		return if target is @previous.valid
 
-	# 			# Only check parent again if the parent exists
-	# 			check target.parentNode if target.parentNode
+		# Act as if the original node does not exist
+		return if @node is target
 
-	# 		# Start the loop that cho
-	# 		check ev.t.1arget
+		# Store the new node
+		@previous.valid = target
 
-	# 	# The node must always be found otherwise something is wrong with the path or the assumtion the node will always be avaiable in the path
-	# 	return @error1.2  if not found
+		# Switch because a new valid target has been found
+		@switch target
 
-	# 	# Determin the mousedown position within the node
-	# 	@data.offset =
-	# 		x : x
-	# 		y : y
 
-	# 	# Start listening for the mousemove event
-	# 	window.addEventListener 'mousemove', @mousemove
+	validParent: (target) ->
 
+		# Target must be defined (no dragging outside the viewport)
+		return if not target
 
-	# mousemove: (@e) =>
+		# By default assume is not valid
+		valid = false
 
-	# 	# Prevent any default actions while dragging (text-selection, cursor change)
-	# 	@e.preventDefault()
+		# Check if this target is a valid dragify parent
+		valid = target if @validContainer target
 
-	# 	# Fix for events that don't have a 'x' or 'y'
-	# 	@e.X = @e.clientX
-	# 	@e.Y = @e.clientY
+		# Find-correct-parent loop function
+		find = (el) =>
 
-	# 	if not @active
+			# Check if this target's parent node is a valid dragify parent
+			if @validContainer el.parentNode
 
-	# 		# Check if the tresh hold has been passed
-	# 		@active = true if Math.abs(@e.X-@data.start.x) > @dragify.options.threshold.x
-	# 		@active = true if Math.abs(@e.Y-@data.start.y) > @dragify.options.threshold.y
+				# Store the valid element
+				valid = el
 
-	# 		return if not @active
+			else
 
-	# 		# Place the mirror in the DOM
-	# 		@set()
+				# Check if this element's parent is valid if the parent exists
+				find el.parentNode if el.parentNode
 
-	# 	# Set mirror's position
-	# 	@position() if @active
+		# Start the find loop if no valid target has been foud yet
+		find target if not valid
 
+		# Return a valid element or false
+		valid
 
-	# position: ->
 
-	# 	# Update mirror position using transform
-	# 	@mirror.style.transform = "translate(#{@e.X-@data.offset.x}px,#{@e.Y-@data.offset.y}px)"
+	switch: (@target) ->
 
-	# 	# Get node behind the cursor
-	# 	target = document.elementFromPoint @e.X, @e.Y
+		# Target is a parent
+		if @validContainer @target
 
-	# 	# Stop if the target is the same as the previous target (outside viewport target is null)
-	# 	return if target and target is @previous.target
+			# Transfer to a new parent if the node's parent is different from the target
+			@transfer() if @node.parentNode isnt @target
 
-	# 	# Store the new node
-	# 	@previous.target = target
+			# Don't do anything if the node's parent is targeted
+			return
 
-	# 	# Check if new target is valid and make sure it returns the to-be-dragged target and not one of it's children
-	# 	return if not target = @valid2 target
+		# Check if the target or node has a higher index but first also check if the node is already within this parent
+		if @target.parentNode isnt @node.parentNode or (@getIndex @node) > (@getIndex @target)
 
-	# 	# Stop if the valid target is the same as the previous valid target
-	# 	return if target is @previous.valid
+			# Insert befire the target
+			@insert @target.parentNode, @node, @target
+		else
 
-	# 	# Act as if the original node does not exist
-	# 	return if @node is target
+			# Insert after the target
+			@insert @target.parentNode, @node, @target.nextSibling
 
-	# 	# Store the new node
-	# 	@previous.valid = target
 
-	# 	# Switch because a new valid target has been found
-	# 	@switch target
+	insert: (parent, node, target) ->
 
+		# Insert after the target
+		parent.insertBefore node, target
 
-	# valid2: (target) ->
+		# Determin if placed in a parent or replaced another element
+		replaced = if @target isnt parent then @target else undefined
 
-	# 	# Target must be defined (no dragging outside the viewport)
-	# 	return if not target
+		# The original element is being moved
+		@dragify.emit 'move', @node, @node.parentNode, @data.source, replaced
 
-	# 	# By default assume is not valid
-	# 	valid = false
 
-	# 	# Check if this target is a valid dragify parent
-	# 	valid = target if -1 isnt @dragify.containers.indexOf target
 
-	# 	# Find-correct-parent loop function
-	# 	find = (el) =>
+	transfer: ->
 
-	# 		# Check if this target's parent node is a valid dragify parent
-	# 		if -1 is @dragify.containers.indexOf el.parentNode
+		# Store lowest y distance to child from mouse pointer
+		lowest = null
 
-	# 			# Check if this element's parent is valid if the parent exists
-	# 			find el.parentNode if el.parentNode
+		# Loop over all children
+		for child, index in @target.childNodes
 
-	# 		else
+			# Get the lowest distance between child y-line segments and mouse cursor
+			[val, lower] = @distance
+				top    : child.offsetTop
+				bottom : child.offsetTop + child.clientHeight
 
-	# 			# Store the valid element
-	# 			valid = el
+			# Set lowest if not defined or if the calculated distance is lower than the existing one
+			if not lowest or val < lowest
+				lowest = val
+				target = child
+				below = lower
 
-	# 	# Start the find loop
-	# 	find target
+		# Add to bottom of parent if the distance between the mouse and the closest child is bigger than the offset
+		target = null if @target.childNodes[@target.childNodes.length-1] is target and below
 
-	# 	# Return a valid element or false
-	# 	valid
+		# Insert after the target
+		@insert @target, @node, target
 
 
-	# switch: (@target) ->
+	distance: (pos) ->
 
-	# 	# Target is a parent
-	# 	if -1 isnt @dragify.containers.indexOf @target
+		# Pointer is not below this element
+		below = false
 
-	# 		# Transfer to a new parent if the node's parent is different from the target
-	# 		@transfer() if @node.parentNode isnt @target
+		# The offset position of the mouse in the parent element
+		y = @e.offsetY
 
-	# 		# Don't do anything if the node's parent is targeted
-	# 		return
+		# Set distance value
+		val = Math.abs(y-pos.top)
 
-	# 	# Check if the target or node has a higher index but first also check if the node is already within this parent
-	# 	if @target.parentNode isnt @node.parentNode or (@getIndex @node) > (@getIndex @target)
+		# Check if bottom value is lower
+		val = bottom if val > bottom = Math.abs(y-pos.bottom)
 
-	# 		# Insert befire the target
-	# 		@insert @target.parentNode, @node, @target
-	# 	else
-
-	# 		# Insert after the target
-	# 		@insert @target.parentNode, @node, @target.nextSibling
-
-
-	# insert: (parent, node, target) ->
-
-	# 	# Insert after the target
-	# 	parent.insertBefore node, target
-
-	# 	# Determin if placed in a parent or replaced another element
-	# 	replaced = if @target isnt parent then @target else undefined
-
-	# 	# The original element is being moved
-	# 	@dragify.emit 'move', @node, @node.parentNode, @data.source, replaced
-
-
-	# getIndex: (node) ->
-
-	# 	(return index if child is node) for child, index in node.parentNode.childNodes
-
-	# 	null
-
-
-	# transfer: ->
-
-	# 	# Store lowest y distance to child from mouse pointer
-	# 	lowest = null
-
-	# 	# Loop over all children
-	# 	for child, index in @target.childNodes
-
-	# 		# Get the lowest distance between child y-line segments and mouse cursor
-	# 		[val, lower] = @distance
-	# 			top    : child.offsetTop
-	# 			bottom : child.offsetTop + child.clientHeight
-
-	# 		# Set lowest if not defined or if the calculated distance is lower than the existing one
-	# 		if not lowest or val < lowest
-	# 			lowest = val
-	# 			target = child
-	# 			below = lower
-
-	# 	# Add to bottom of parent if the distance between the mouse and the closest child is bigger than the offset
-	# 	target = null if @target.childNodes[@target.childNodes.length-1] is target and below
-
-	# 	# Insert after the target
-	# 	@insert @target, @node, target
-
-
-	# distance: (pos) ->
-
-	# 	# Pointer is not below this element
-	# 	below = false
-
-	# 	# The offset position of the mouse in the parent element
-	# 	y = @e.offsetY
-
-	# 	# Set distance value
-	# 	val = Math.abs(y-pos.top)
-
-	# 	# Check if bottom value is lower
-	# 	val = bottom if val > bottom = Math.abs(y-pos.bottom)
-
-	# 	# Return value and if the cursor was lower than the div
-	# 	[val, y>pos.bottom]
+		# Return value and if the cursor was lower than the div
+		[val, y>pos.bottom]
 
 
 	create: ->
