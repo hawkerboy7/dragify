@@ -25,9 +25,23 @@ Dragify = (function(superClass) {
     this.containers = containers;
     Dragify.__super__.constructor.apply(this, arguments);
     if (!options) {
-      options = this.containers || {};
+      if (!!this.containers && this.containers.constructor === Object) {
+        options = this.containers;
+        this.containers = [];
+      } else if (!!this.containers && this.containers.constructor === Array) {
+        options = {};
+      } else {
+        this.containers = [];
+        options = {};
+      }
+    } else {
+      if (!this.containers || this.containers.constructor !== Array) {
+        this.containers = [];
+      }
+      if (options.containers) {
+        this.containers = this.containers.concat(options.containers);
+      }
     }
-    this.containers = options.containers || [];
     if (this.containers.length === 0 && (options.isContainer == null)) {
       return log("Dragify ~ You provided neither the `options.containers` nor the 'isContainer` function. At least one is required.");
     }
