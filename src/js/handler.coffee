@@ -19,10 +19,16 @@ class Handler
 
 	setup: ->
 
-		# Containers must be an array
-		return @error 1 if @dragify.containers.constructor isnt Array
+		# Define the containers storage
+		@dragify.containers = [] if not @dragify.containers
 
-		# Set the  data storage var
+		# Containers must be an array
+		return @error 1.1 if @dragify.containers.constructor isnt Array
+
+		# isContainer must be a function
+		return @error 1.2 if not typeof @dragify.options.isContainer is "function"
+
+		# Set the data storage var
 		@setData()
 
 		# Create mirror container
@@ -46,11 +52,11 @@ class Handler
 
 	listeners: ->
 
-		# Dragifyify all objects =D
-		@listen container for container in @dragify.containers
-
 		# Listen for a mouseup in the window which stops the drag
 		window.addEventListener 'mouseup', @mouseup
+
+		# Listen for a mousedown in the window which start checking if the target is a valid dragify target
+		window.addEventListener 'mousedown', @mousedown
 
 
 	mouseup: (e) =>
@@ -65,74 +71,51 @@ class Handler
 		@reset() if @active
 
 
-	listen: (container) ->
-
-		# Function is used to keep a correct reference to the node
-		set = (node) =>
-
-			# Listen for a mousedown event on the child node
-			node.addEventListener 'mousedown', (ev) => @mousedown ev, node
-
-		# Listen to all child nodes of the provided container
-		set node for node in container.childNodes
-
-
-	mousedown: (ev, node) =>
+	mousedown: (ev) =>
 
 		# Only continue if left mouseclick
 		return if ev.button isnt 0
 
-		# Store the node that has been 'mousedowned' upon
-		@node = node
+		# Check if this target is a valid node or has a valid node in it's ancestry
+		return if not @node = @validMousedown ev.target
 
 		# Store the source where the node came from
-		@data.source = node.parentNode
+		@data.source = @node.parentNode
 
 		# Store the current index of the node
-		@data.index = @getIndex node
+		@data.index = @getIndex @node
 
 		# Store mousedown position
-		@data.start.x = ev.x || ev.clientX
-		@data.start.y = ev.y || ev.clientY
+		@data.start.x = ev.clientX
+		@data.start.y = ev.clientY
 
-		# Store offset of the click
+		# Store offset of the click in the element
 		x = ev.offsetX
 		y = ev.offsetY
 
-		# Path available in chrome
-		if ev.path
+		# Predefine found so it's available outside the check scope
+		found = false
 
-			# Loop over the path to check if the dragified element was pressed or one of it's children('s children etc.)
-			for el in ev.path
+		# Correct for mousedown on a child (or it's children) of the @node
+		check = (target) =>
 
-				# Stop checkking
-				if el is node
-					found = true
-					break
+			# Stop checking if the target is found
+			return if target is @node
 
-				# Add to the offset so the position relative to the dragified element gets calculated
-				x += el.offsetLeft
-				y += el.offsetTop
-		else
+			# Add to the offset so the position relative to the dragified element gets calculated
+			x += target.offsetLeft
+			y += target.offsetTop
 
-			check = (target) ->
+			# Only check parent again if the parent exists
+			return check target.parentNode if target.parentNode
 
-				return found = true if target is node
+			# No parent is found
+			true
 
-				# Add to the offset so the position relative to the dragified element gets calculated
-				x += target.offsetLeft
-				y += target.offsetTop
+		# The node must always be found otherwise something is wrong with the path or the assumtion the node will always be avaiable in the path upto the window
+		return @error 2.1 if check ev.target
 
-				# Only check parent again if the parent exists
-				check target.parentNode if target.parentNode
-
-			# Start the loop that cho
-			check ev.target
-
-		# The node must always be found otherwise something is wrong with the path or the assumtion the node will always be avaiable in the path
-		return @error 2 if not found
-
-		# Determin the mousedown position within the node
+		# Store the mousedown position within the node
 		@data.offset =
 			x : x
 			y : y
@@ -141,21 +124,62 @@ class Handler
 		window.addEventListener 'mousemove', @mousemove
 
 
+	validMousedown: (target) ->
+
+		check = (el) =>
+
+			try
+				@validContainer el
+			catch e
+				false
+
+		validate = (node) =>
+
+			# Check if the parent of this node is a valid dragify container
+			return node if check node.parentNode
+
+			# Try to validate this node's parent since the current node was not valid
+			return validate node.parentNode if node.parentNode
+
+			# No valid parent is found
+			false
+
+		# Check if the parent node is valid
+		validate target
+
+
+	validContainer: (el) ->
+
+		# Null or document are not valid containers to drop into
+		return false if not el or el is document
+
+		@dragify.containers.indexOf(el) isnt -1 or @dragify.options.isContainer el
+
+
+	getIndex: (node) ->
+
+		(return index if child is node) for child, index in node.parentNode.childNodes
+
+		null
+
+
 	mousemove: (@e) =>
 
 		# Prevent any default actions while dragging (text-selection, cursor change)
 		@e.preventDefault()
 
-		# Fix for events that don't have a 'x' or 'y'
+		# Store the X and Y position within the event
 		@e.X = @e.clientX
 		@e.Y = @e.clientY
 
+		# If dragging has not started yet check if it needs to start
 		if not @active
 
-			# Check if the tresh hold has been passed
+			# Check if the threshold has been passed
 			@active = true if Math.abs(@e.X-@data.start.x) > @dragify.options.threshold.x
 			@active = true if Math.abs(@e.Y-@data.start.y) > @dragify.options.threshold.y
 
+			# Don't so anything if the threshold has not been passed yet
 			return if not @active
 
 			# Place the mirror in the DOM
@@ -173,14 +197,14 @@ class Handler
 		# Get node behind the cursor
 		target = document.elementFromPoint @e.X, @e.Y
 
-		# Stop if the target is the same as the previous target (outside viewport target is null)
+		# Do not do anything if the target is the same as the previous target or is undefined (outside viewport target is null)
 		return if target and target is @previous.target
 
 		# Store the new node
 		@previous.target = target
 
-		# Check if new target is valid and make sure it returns the to-be-dragged target and not one of it's children
-		return if not target = @valid target
+		# Check if new target is valid and make sure it returns the to-be-dragged target and not one of it's children or the parent container itself
+		return if not target = @validParent target
 
 		# Stop if the valid target is the same as the previous valid target
 		return if target is @previous.valid
@@ -195,7 +219,7 @@ class Handler
 		@switch target
 
 
-	valid: (target) ->
+	validParent: (target) ->
 
 		# Target must be defined (no dragging outside the viewport)
 		return if not target
@@ -204,24 +228,24 @@ class Handler
 		valid = false
 
 		# Check if this target is a valid dragify parent
-		valid = target if -1 isnt @dragify.containers.indexOf target
+		valid = target if @validContainer target
 
 		# Find-correct-parent loop function
 		find = (el) =>
 
 			# Check if this target's parent node is a valid dragify parent
-			if -1 is @dragify.containers.indexOf el.parentNode
-
-				# Check if this element's parent is valid if the parent exists
-				find el.parentNode if el.parentNode
-
-			else
+			if @validContainer el.parentNode
 
 				# Store the valid element
 				valid = el
 
-		# Start the find loop
-		find target
+			else
+
+				# Check if this element's parent is valid if the parent exists
+				find el.parentNode if el.parentNode
+
+		# Start the find loop if no valid target has been foud yet
+		find target if not valid
 
 		# Return a valid element or false
 		valid
@@ -230,7 +254,7 @@ class Handler
 	switch: (@target) ->
 
 		# Target is a parent
-		if -1 isnt @dragify.containers.indexOf @target
+		if @validContainer @target
 
 			# Transfer to a new parent if the node's parent is different from the target
 			@transfer() if @node.parentNode isnt @target
@@ -260,12 +284,6 @@ class Handler
 		# The original element is being moved
 		@dragify.emit 'move', @node, @node.parentNode, @data.source, replaced
 
-
-	getIndex: (node) ->
-
-		(return index if child is node) for child, index in node.parentNode.childNodes
-
-		null
 
 
 	transfer: ->
