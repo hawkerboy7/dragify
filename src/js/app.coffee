@@ -40,7 +40,7 @@ class Dragify extends MiniEventEmitter
 				# Define the containers to be empty
 				@containers = []
 
-			else if @containers.constructor is Array
+			else if !!@containers and @containers.constructor is Array
 
 				# Not options are provided
 				options = {}
@@ -52,6 +52,14 @@ class Dragify extends MiniEventEmitter
 
 				# Set as empty
 				options = {}
+
+		else
+
+			# Make sure @containers is an array in case a wrong value is provided
+			@containers = [] if not @containers or @containers.constructor isnt Array
+
+			# Merge the containers if containers are provided trough the options as well
+			@containers = @containers.concat options.containers if options.containers
 
 		# Make sure containers are provided or can be found dynamically
 		return log "Dragify ~ You provided neither the `options.containers` nor the 'isContainer` function. At least one is required." if @containers.length is 0 and not options.isContainer?

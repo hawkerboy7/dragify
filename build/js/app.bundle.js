@@ -30,11 +30,18 @@ Dragify = (function(superClass) {
       if (!!this.containers && this.containers.constructor === Object) {
         options = this.containers;
         this.containers = [];
-      } else if (this.containers.constructor === Array) {
+      } else if (!!this.containers && this.containers.constructor === Array) {
         options = {};
       } else {
         this.containers = [];
         options = {};
+      }
+    } else {
+      if (!this.containers || this.containers.constructor !== Array) {
+        this.containers = [];
+      }
+      if (options.containers) {
+        this.containers = this.containers.concat(options.containers);
       }
     }
     if (this.containers.length === 0 && (options.isContainer == null)) {
