@@ -28,11 +28,30 @@ class Dragify extends MiniEventEmitter
 		# Run Events constructor to setup the mini event emitter as this classes prototype
 		super
 
-		# In case the second argument options is not provided the first argument is regarded as the options param
-		options = @containers || {} if not options
+		# Check if options are provided
+		if not options
 
-		# Retrieve containers from the options or set a default
-		@containers = options.containers || []
+			# Check if only options are provided
+			if !!@containers and @containers.constructor is Object
+
+				# Correctly store the options
+				options = @containers
+
+				# Define the containers to be empty
+				@containers = []
+
+			else if @containers.constructor is Array
+
+				# Not options are provided
+				options = {}
+
+			else
+
+				# Some not allowed value is provided reset all fields
+				@containers = []
+
+				# Set as empty
+				options = {}
 
 		# Make sure containers are provided or can be found dynamically
 		return log "Dragify ~ You provided neither the `options.containers` nor the 'isContainer` function. At least one is required." if @containers.length is 0 and not options.isContainer?
