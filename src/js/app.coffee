@@ -1,6 +1,11 @@
+# --------------------------------------------------
+# Expose
+# --------------------------------------------------
+
 # Require | Browserify, Node
 MiniEventEmitter = require "mini-event-emitter"
 
+# Always
 Handler = require "./handler"
 
 
