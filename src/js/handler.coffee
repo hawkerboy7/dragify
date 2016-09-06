@@ -1,4 +1,4 @@
-Error = require './error'
+Error = require "./error"
 
 
 
@@ -53,10 +53,10 @@ class Handler
 	listeners: ->
 
 		# Listen for a mouseup in the window which stops the drag
-		window.addEventListener 'mouseup', @mouseup
+		window.addEventListener "mouseup", @mouseup
 
 		# Listen for a mousedown in the window which start checking if the target is a valid dragify target
-		window.addEventListener 'mousedown', @mousedown
+		window.addEventListener "mousedown", @mousedown
 
 
 	mouseup: (e) =>
@@ -65,9 +65,9 @@ class Handler
 		return if e.button isnt 0
 
 		# Stop listening for the mousemove since we stopped dragging
-		window.removeEventListener 'mousemove', @mousemove
+		window.removeEventListener "mousemove", @mousemove
 
-		# Reset the mirror back to it's basics
+		# Reset the mirror back to its basics
 		@reset() if @active
 
 
@@ -76,7 +76,7 @@ class Handler
 		# Only continue if left mouseclick
 		return if ev.button isnt 0
 
-		# Check if this target is a valid node or has a valid node in it's ancestry
+		# Check if this target is a valid node or has a valid node in its ancestry
 		return if not @node = @validMousedown ev.target
 
 		# Store the source where the node came from
@@ -93,10 +93,10 @@ class Handler
 		x = ev.offsetX
 		y = ev.offsetY
 
-		# Predefine found so it's available outside the check scope
+		# Predefine found so it is available outside the check scope
 		found = false
 
-		# Correct for mousedown on a child (or it's children) of the @node
+		# Correct for mousedown on a child (or its children) of the @node
 		check = (target) =>
 
 			# Stop checking if the target is found
@@ -121,7 +121,7 @@ class Handler
 			y : y
 
 		# Start listening for the mousemove event
-		window.addEventListener 'mousemove', @mousemove
+		window.addEventListener "mousemove", @mousemove
 
 
 	validMousedown: (target) ->
@@ -138,7 +138,7 @@ class Handler
 			# Check if the parent of this node is a valid dragify container
 			return node if check node.parentNode
 
-			# Try to validate this node's parent since the current node was not valid
+			# Try to validate the parent of this node since the current node was not valid
 			return validate node.parentNode if node.parentNode
 
 			# No valid parent is found
@@ -179,13 +179,13 @@ class Handler
 			@active = true if Math.abs(@e.X-@data.start.x) > @dragify.options.threshold.x
 			@active = true if Math.abs(@e.Y-@data.start.y) > @dragify.options.threshold.y
 
-			# Don't so anything if the threshold has not been passed yet
+			# Don"t so anything if the threshold has not been passed yet
 			return if not @active
 
 			# Place the mirror in the DOM
 			@set()
 
-		# Set mirror's position
+		# Set the mirrors position
 		@position() if @active
 
 
@@ -197,13 +197,13 @@ class Handler
 		# Get node behind the cursor
 		target = document.elementFromPoint @e.X, @e.Y
 
-		# Do not do anything if the target is the same as the previous target or is undefined (outside viewport target is null)
+		# Do not do anything if the target is the same as the previous target or is undefined (outside viewport the target is null)
 		return if target and target is @previous.target
 
 		# Store the new node
 		@previous.target = target
 
-		# Check if new target is valid and make sure it returns the to-be-dragged target and not one of it's children or the parent container itself
+		# Check if new target is valid and make sure it returns the to-be-dragged target and not one of its children or the parent container itself
 		return if not target = @validParent target
 
 		# Stop if the valid target is the same as the previous valid target
@@ -224,7 +224,7 @@ class Handler
 		# Target must be defined (no dragging outside the viewport)
 		return if not target
 
-		# By default assume is not valid
+		# By default assume it is not valid
 		valid = false
 
 		# Check if this target is a valid dragify parent
@@ -233,7 +233,7 @@ class Handler
 		# Find-correct-parent loop function
 		find = (el) =>
 
-			# Check if this target's parent node is a valid dragify parent
+			# Check if the parent of this node is a valid dragify parent
 			if @validContainer el.parentNode
 
 				# Store the valid element
@@ -241,7 +241,7 @@ class Handler
 
 			else
 
-				# Check if this element's parent is valid if the parent exists
+				# Check if the parent of this element is valid; only if the parent exists
 				find el.parentNode if el.parentNode
 
 		# Start the find loop if no valid target has been foud yet
@@ -256,10 +256,10 @@ class Handler
 		# Target is a parent
 		if @validContainer @target
 
-			# Transfer to a new parent if the node's parent is different from the target
+			# Transfer to a new parent if the parent of the node is different from the target
 			@transfer() if @node.parentNode isnt @target
 
-			# Don't do anything if the node's parent is targeted
+			# Do not do anything if the parent of the node is targeted
 			return
 
 		# Check if the target or node has a higher index but first also check if the node is already within this parent
@@ -282,7 +282,7 @@ class Handler
 		replaced = if @target isnt parent then @target else undefined
 
 		# The original element is being moved
-		@dragify.emit 'move', @node, @node.parentNode, @data.source, replaced
+		@dragify.emit "move", @node, @node.parentNode, @data.source, replaced
 
 
 
@@ -333,46 +333,46 @@ class Handler
 	create: ->
 
 		# Create the div containing a mirror of the node to be dragged and dropped
-		@mirror = document.createElement 'div'
+		@mirror = document.createElement "div"
 
 		# Set tabindex of element so it can be focused
 		@mirror.tabIndex = 0
 
 		# Set className
-		@mirror.className = 'dragify--mirror'
+		@mirror.className = "dragify--mirror"
 
 
 	set: ->
 
-		# Act as if the node's parent was the previous valid target to prevent the switch from triggering on this parent on drag start
+		# Act as if the node is parent was the previous valid target to prevent the switch from triggering on this parent on drag start
 		@previous.valid = @node.parentNode
 
 		# Start the dragging
-		@dragify.emit 'drag', @node, @node.parentNode
+		@dragify.emit "drag", @node, @node.parentNode
 
 		# Create a copy of the node to-be-dragged
 		@mirror.appendChild clone = @node.cloneNode true
 
-		# Explicitly set the clone's width because of a possible width 100%
+		# Explicitly set the clone is width because of a possible width 100%
 		clone.style.width = "#{@node.offsetWidth}px"
 
-		# Explicitly set the clone's height because of a possible height 100%
+		# Explicitly set the clone is height because of a possible height 100%
 		clone.style.height = "#{@node.offsetHeight}px"
 
 		# Add the mirror to the DOM
 		document.body.appendChild @mirror
 
-		# Focus the mirror so the @node is unfocused and doesn't trigger event's anymore like hover
+		# Focus the mirror so the @node is unfocused and doesn"t trigger event is anymore like hover
 		@mirror.focus()
 
 		# Prevent the document from selecting while dragging
-		@addClass document.body, 'dragify--body'
+		@addClass document.body, "dragify--body"
 
 		# Allow for a transition in opacity
-		@addClass @node, 'dragify--transition' if @dragify.options.transition
+		@addClass @node, "dragify--transition" if @dragify.options.transition
 
 		# Make the original node opague
-		@addClass @node, 'dragify--opaque'
+		@addClass @node, "dragify--opaque"
 
 
 	reset: ->
@@ -380,45 +380,45 @@ class Handler
 		# Reset active state
 		@active = false
 
-		# Empty the mirror by removing all it's children (which should usually only be one)
+		# Empty the mirror by removing all it is children (which should usually only be one)
 		@mirror.removeChild @mirror.firstChild while @mirror.firstChild
 
 		# Remove the mirror from the DOM
 		document.body.removeChild @mirror
 
-		# Remove all extra styling (positioning) so it's reset to default
-		@mirror.removeAttribute 'style'
+		# Remove all extra styling (positioning) so it is reset to default
+		@mirror.removeAttribute  "style"
 
 		# Remove preventing selection while dragging
-		@removeClass document.body, 'dragify--body'
+		@removeClass document.body, "dragify--body"
 
 		# Remove node transfer style
-		@removeClass @node, 'dragify--opaque'
+		@removeClass @node, "dragify--opaque"
 
-		# Maintain the 'old' reference to the node
+		# Maintain the "old" reference to the node
 		remove = (node) =>
 
 			# Remove the transition class with a delay so the transition is fully finished
 			setTimeout(=>
-				@removeClass node, 'dragify--transition'
+				@removeClass node, "dragify--transition"
 			,500)
 
-		# Remove using the reference to the 'old' node in case someone starts dragging a new node within the setTimeout time limit of 500ms
+		# Remove using the reference to the "old" node in case someone starts dragging a new node within the setTimeout time limit of 500ms
 		remove @node if @dragify.options.transition
 
-		# Check if the node didn't actually change position
+		# Check if the node didn"t actually change position
 		if @data.source is @node.parentNode and @data.index is @getIndex @node
 
 			# Node ended up at the place where it came from
-			@dragify.emit 'cancel', @node, @node.parentNode
+			@dragify.emit "cancel", @node, @node.parentNode
 
 		else
 
 			# End of the dragging to a new position
-			@dragify.emit 'drop', @node, @node.parentNode, @data.source
+			@dragify.emit "drop", @node, @node.parentNode, @data.source
 
 		# Indicate end of a drag (which may have resulted in a drop or cancel)
-		@dragify.emit 'end', @node
+		@dragify.emit "end", @node
 
 		# Empty node reference
 		@node = null
@@ -436,19 +436,19 @@ class Handler
 		classes = []
 
 		# Split classes by space
-		classes = node.className.split ' ' if node.className
+		classes = node.className.split " " if node.className
 
 		# Add class to the list
 		classes.push className
 
 		# Turn the list back to a class names string
-		node.className = classes.join ' '
+		node.className = classes.join " "
 
 
 	removeClass: (node, className) ->
 
 		# Retrieve classes used on the body
-		classes = node.className.split ' '
+		classes = node.className.split " "
 
 		# Remove the dragify--body class from the list
 		classes.splice classes.indexOf(className), 1
@@ -457,12 +457,12 @@ class Handler
 		if classes.length is 0
 
 			# Remove the class attribute to prevent an empty class attribute
-			node.removeAttribute 'class'
+			node.removeAttribute "class"
 
 		else
 
 			# Restore the old className
-			node.className = classes.join ' '
+			node.className = classes.join " "
 
 
 
