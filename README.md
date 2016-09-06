@@ -3,7 +3,7 @@
 
 
 ## What is it?
-`dragify` will turn elements in the DOM into dragable elements.
+`Dragify` will turn elements in the DOM into dragable elements.
 It triggers hardware acceleration by using the css3 `transform` and `will-change`.
 This should help to optimize performance when dragging elements with a lot of content on large pages.
 
@@ -29,11 +29,11 @@ npm install dragify --save
 ## Usage
 ```js
 var dragify = new Dragify(containers,options);
-
 ```
 
+
 ### `Containers`
-`containers` is an array of the parents of the DOM elements you wish to `dragify`.
+`containers` is an array of the parents of the DOM elements you wish to `Dragify`.
 
 ```html
 
@@ -53,7 +53,6 @@ var dragify = new Dragify(containers,options);
 ```
 
 ```js
-
 containers = [
 	document.getElementsByClassName("parent-one")[0],
 	document.getElementsByClassName("parent-two")[0]
@@ -75,14 +74,15 @@ By default a threshold of `3px` is applied in both directions.
 ```js
 options = {
 	threshold: {
-		x: 20
+		x: 20,
 		y: 20
 	}
 }
 
-var dragify = new Dragify(containers, options);
+var dragify = new Dragify(containers,options);
 ```
 *The user can now mousedown on an element and move the mouse 20px left right up and down from it's original starting point before the actual drag will start.*
+
 
 #### `Options.transition`
 While dragging an element that element will be in transition. It's opacity will drop to `0.3`. When de element is dropped the element's opacity will become `1.0` again.
@@ -95,16 +95,32 @@ options = {
 	transition: false
 }
 
-var dragify = new Dragify(containers, options);
+var dragify = new Dragify(containers,options);
 ```
-*Of course you can still add the transition properties to the element directly.*
+*Now the transitions class will not be added. Ofcourse you can still add the transition properties to the element directly.*
+
+
+#### `Options.isContainer`
+When you initialize `Dragify` you provide containers which contain children to be dragged. However if you have dynamic children and or containers the new elements won't be `Dragified`.
+If you provide the `isContainer` options you can define a function which determines if an element is a valid `Dragify` parent.
+
+```js
+options = {
+	isContainer: function (el) {
+		return el.classList.contains('dragify--container');
+	}
+}
+
+var dragify = new Dragify(options);
+```
+*Now any element at any point in time will be a valid Dragify container if it contains the class `dragify--container`*
 
 
 ### Events
 You can listen to the following events
 
 ```js
-var dragify = new Dragify(containers);
+var dragify = new Dragify(containers,options);
 
 dragify.on('drag', function(){console.log('drag');});
 dragify.on('move', function(){console.log('move');});
