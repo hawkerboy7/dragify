@@ -133,7 +133,7 @@ class Handler
 			catch e
 				false
 
-		validate = (node) =>
+		validate = (node) ->
 
 			# Check if the parent of this node is a valid dragify container
 			return node if check node.parentNode
