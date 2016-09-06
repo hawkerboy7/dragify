@@ -1,3 +1,20 @@
+<p align="center">
+	<a target="_blank" href="https://travis-ci.org/hawkerboy7/dragify">
+		<img src="https://img.shields.io/travis/hawkerboy7/dragify.svg?branch=master">
+	</a>
+	<a target="_blank" href="https://david-dm.org/hawkerboy7/dragify#info=devDependencies&amp;view=table">
+		<img src="https://img.shields.io/david/hawkerboy7/dragify.svg">
+	</a>
+	<a target="_blank" href="https://www.codacy.com/app/dunk_king7/dragify/dashboard">
+		<img src="https://img.shields.io/codacy/8cd2ff21ecb545d9b378336a26704532.svg">
+	</a>
+	<a target="_blank" href="https://gitter.im/hawkerboy7/dragify">
+		<img src="https://img.shields.io/badge/Gitter-JOIN%20CHAT%20%E2%86%92-1dce73.svg">
+	</a>
+</p>
+
+
+
 # Dragify
 > Turn your plain DOM elements into drag queens
 
