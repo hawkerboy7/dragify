@@ -45,6 +45,13 @@ npm install dragify --save
 
 ## Usage
 ```js
+// Only containers
+var dragify = new Dragify(containers);
+
+// Only options
+var dragify = new Dragify(options);
+
+// Both containers and options
 var dragify = new Dragify(containers,options);
 ```
 
@@ -96,7 +103,7 @@ options = {
 	}
 }
 
-var dragify = new Dragify(containers,options);
+var dragify = new Dragify(options);
 ```
 *The user can now mousedown on an element and move the mouse 20px left right up and down from it's original starting point before the actual drag will start.*
 
@@ -112,7 +119,7 @@ options = {
 	transition: false
 }
 
-var dragify = new Dragify(containers,options);
+var dragify = new Dragify(options);
 ```
 *Now the transitions class will not be added. Ofcourse you can still add the transition properties to the element directly.*
 
