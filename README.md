@@ -171,8 +171,8 @@ Event Name | Listener Arguments             | Event Description
 ## Inspiration
 I have used [Dragula][2] and liked its simplicity but I wanted hardware acceleration and a threshold.
 The lack of these functionalities in dragula causes some discomfort for my own use cases.
-If required I will try to add more of the functionality that Dragula provides, however I do not focus on supporting < IE10.
-PR's for supporting < IE10 however I will take into consideration.
+If required I will try to add more of the functionality that Dragula provides, however I do not focus on supporting < IE11.
+PR's for supporting < IE11 however I will take into consideration.
 
 
 [1]: #optionsthreshold
