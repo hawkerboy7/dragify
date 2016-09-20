@@ -89,10 +89,10 @@ var dragify = new Dragify(containers);
 ### `Options`
 
 #### `Options.threshold`
-The threshold option was created to make sure a **click** on a element **doesn't turn into a drag** because the user can't keep it's mouse steady during the click.
-Lots of users want to click on an element but instead drag it, even though it's just a little distance.
+The threshold option was created to make sure a **click** on a element **does not turn into a drag** because the user cannot keep the mouse steady during the click.
+Lots of users want to click on an element but instead drag it, even though it is just a little distance.
 This threshold option allows you to determine how much a user is allowed to move **before** the actual drag starts.
-As long as the drag doesn't start all events the element is listening for will still be triggered as if the drag attempt has not happened yet.
+As long as the drag does not start all events the element is listening for will still be triggered as if the drag attempt has not happened yet.
 By default a threshold of `3px` is applied in both directions.
 
 ```js
@@ -105,11 +105,11 @@ options = {
 
 var dragify = new Dragify(options);
 ```
-*The user can now mousedown on an element and move the mouse 20px left right up and down from it's original starting point before the actual drag will start.*
+*The user can now mousedown on an element and move the mouse 20px left right up and down from its original starting point before the actual drag will start.*
 
 
 #### `Options.transition`
-While dragging an element that element will be in transition. It's opacity will drop to `0.3`. When de element is dropped the element's opacity will become `1.0` again.
+While dragging an element that element will be in transition. Its opacity will drop to `0.3`. When the element is dropped the element's opacity will become `1.0` again.
 By default this change in opacity will have a transition. However on `drop` the className `dragify--transition` (which enables this transition) will still be shown on the element due to the time it
 takes for the transition to finish. If you do not want this class to be added you can disable the transition class by setting this value to `false`.
 By default the transition is set to `true`.
@@ -125,7 +125,7 @@ var dragify = new Dragify(options);
 
 
 #### `Options.isContainer`
-When you initialize `Dragify` you provide containers which contain children to be dragged. However if you have dynamic children and or containers the new elements won't be `Dragified`.
+When you initialize `Dragify` you provide containers which contain children to be dragged. However if you have dynamic children and or containers the new elements will not be `Dragified`.
 If you provide the `isContainer` options you can define a function which determines if an element is a valid `Dragify` parent.
 
 ```js
