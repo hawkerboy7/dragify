@@ -62,7 +62,7 @@ class Dragify extends MiniEventEmitter
 			@containers = @containers.concat options.containers if options.containers
 
 		# Make sure containers are provided or can be found dynamically
-		return log "Dragify ~ You provided neither the `options.containers` nor the 'isContainer` function. At least one is required." if @containers.length is 0 and not options.isContainer?
+		return log "Dragify ~ You provided neither the `containers` array nor the 'isContainer` function. At least one is required." if @containers.length is 0 and not options.isContainer?
 
 		# --------------------------------------------------
 		# Default options
