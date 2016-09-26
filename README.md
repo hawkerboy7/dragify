@@ -1,3 +1,20 @@
+<p align="center">
+	<a target="_blank" href="https://travis-ci.org/hawkerboy7/dragify">
+		<img src="https://img.shields.io/travis/hawkerboy7/dragify.svg?branch=master">
+	</a>
+	<a target="_blank" href="https://david-dm.org/hawkerboy7/dragify#info=devDependencies&amp;view=table">
+		<img src="https://img.shields.io/david/hawkerboy7/dragify.svg">
+	</a>
+	<a target="_blank" href="https://www.codacy.com/app/dunk_king7/dragify/dashboard">
+		<img src="https://img.shields.io/codacy/8cd2ff21ecb545d9b378336a26704532.svg">
+	</a>
+	<a target="_blank" href="https://gitter.im/hawkerboy7/dragify">
+		<img src="https://img.shields.io/badge/Gitter-JOIN%20CHAT%20%E2%86%92-1dce73.svg">
+	</a>
+</p>
+
+
+
 # Dragify
 > Turn your plain DOM elements into drag queens
 
@@ -28,6 +45,13 @@ npm install dragify --save
 
 ## Usage
 ```js
+// Only containers
+var dragify = new Dragify(containers);
+
+// Only options
+var dragify = new Dragify(options);
+
+// Both containers and options
 var dragify = new Dragify(containers,options);
 ```
 
@@ -65,10 +89,10 @@ var dragify = new Dragify(containers);
 ### `Options`
 
 #### `Options.threshold`
-The threshold option was created to make sure a **click** on a element **doesn't turn into a drag** because the user can't keep it's mouse steady during the click.
-Lots of users want to click on an element but instead drag it, even though it's just a little distance.
+The threshold option was created to make sure a **click** on a element **does not turn into a drag** because the user cannot keep the mouse steady during the click.
+Lots of users want to click on an element but instead drag it, even though it is just a little distance.
 This threshold option allows you to determine how much a user is allowed to move **before** the actual drag starts.
-As long as the drag doesn't start all events the element is listening for will still be triggered as if the drag attempt has not happened yet.
+As long as the drag does not start all events the element is listening for will still be triggered as if the drag attempt has not happened yet.
 By default a threshold of `3px` is applied in both directions.
 
 ```js
@@ -79,13 +103,13 @@ options = {
 	}
 }
 
-var dragify = new Dragify(containers,options);
+var dragify = new Dragify(options);
 ```
-*The user can now mousedown on an element and move the mouse 20px left right up and down from it's original starting point before the actual drag will start.*
+*The user can now mousedown on an element and move the mouse 20px left right up and down from its original starting point before the actual drag will start.*
 
 
 #### `Options.transition`
-While dragging an element that element will be in transition. It's opacity will drop to `0.3`. When de element is dropped the element's opacity will become `1.0` again.
+While dragging an element that element will be in transition. Its opacity will drop to `0.3`. When the element is dropped the element's opacity will become `1.0` again.
 By default this change in opacity will have a transition. However on `drop` the className `dragify--transition` (which enables this transition) will still be shown on the element due to the time it
 takes for the transition to finish. If you do not want this class to be added you can disable the transition class by setting this value to `false`.
 By default the transition is set to `true`.
@@ -95,13 +119,13 @@ options = {
 	transition: false
 }
 
-var dragify = new Dragify(containers,options);
+var dragify = new Dragify(options);
 ```
 *Now the transitions class will not be added. Ofcourse you can still add the transition properties to the element directly.*
 
 
 #### `Options.isContainer`
-When you initialize `Dragify` you provide containers which contain children to be dragged. However if you have dynamic children and or containers the new elements won't be `Dragified`.
+When you initialize `Dragify` you provide containers which contain children to be dragged. However if you have dynamic children and or containers the new elements will not be `Dragified`.
 If you provide the `isContainer` options you can define a function which determines if an element is a valid `Dragify` parent.
 
 ```js
@@ -147,8 +171,8 @@ Event Name | Listener Arguments             | Event Description
 ## Inspiration
 I have used [Dragula][2] and liked its simplicity but I wanted hardware acceleration and a threshold.
 The lack of these functionalities in dragula causes some discomfort for my own use cases.
-If required I will try to add more of the functionality that Dragula provides, however I do not focus on supporting < IE10.
-PR's for supporting < IE10 however I will take into consideration.
+If required I will try to add more of the functionality that Dragula provides, however I do not focus on supporting < IE11.
+PR's for supporting < IE11 however I will take into consideration.
 
 
 [1]: #optionsthreshold

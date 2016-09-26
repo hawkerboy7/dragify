@@ -14,6 +14,6 @@
   },
   "bugs": "https://github.com/hawkerboy7/dragify/issues",
   "dependencies": {
-    "mini-event-emitter": "^0.5.0"
+    "mini-event-emitter": "^0.5.3"
   }
 }
