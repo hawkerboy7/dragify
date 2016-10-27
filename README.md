@@ -163,7 +163,6 @@ Event Name | Listener Arguments             | Event Description
 
 
 ## Planned functionality
-- Support IE
 - Support mobile
 - Support removing
 
