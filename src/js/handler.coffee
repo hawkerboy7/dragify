@@ -6,6 +6,8 @@ class Handler
 
 	constructor: (@dragify) ->
 
+		return if not @dragify.options.grid?
+
 		@load()
 		@setup()
 		@listeners()

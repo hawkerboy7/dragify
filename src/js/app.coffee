@@ -6,6 +6,7 @@
 MiniEventEmitter = require "mini-event-emitter"
 
 # Always
+Grid    = require "./grid"
 Handler = require "./handler"
 
 
@@ -101,6 +102,7 @@ class Dragify extends MiniEventEmitter
 		@options.isContainer = options.isContainer if options.isContainer?
 
 		# Create handler doing all private work
+		new Grid this
 		new Handler this
 
 

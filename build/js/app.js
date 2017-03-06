@@ -1,8 +1,10 @@
-var Dragify, Handler, MiniEventEmitter, log,
+var Dragify, Grid, Handler, MiniEventEmitter, log,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
 MiniEventEmitter = require("mini-event-emitter");
+
+Grid = require("./grid");
 
 Handler = require("./handler");
 
@@ -44,7 +46,7 @@ Dragify = (function(superClass) {
       }
     }
     if (this.containers.length === 0 && (options.isContainer == null)) {
-      return log("Dragify ~ You provided neither the `options.containers` nor the 'isContainer` function. At least one is required.");
+      return log("Dragify ~ You provided neither the `containers` array nor the 'isContainer` function. At least one is required.");
     }
     this.options = {
       threshold: {
@@ -68,6 +70,7 @@ Dragify = (function(superClass) {
     if (options.isContainer != null) {
       this.options.isContainer = options.isContainer;
     }
+    new Grid(this);
     new Handler(this);
   }
 

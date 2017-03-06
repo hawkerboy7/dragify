@@ -1,9 +1,11 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var Dragify, Handler, MiniEventEmitter, log,
+var Dragify, Grid, Handler, MiniEventEmitter, log,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
 MiniEventEmitter = require("mini-event-emitter");
+
+Grid = require("./grid");
 
 Handler = require("./handler");
 
@@ -45,7 +47,7 @@ Dragify = (function(superClass) {
       }
     }
     if (this.containers.length === 0 && (options.isContainer == null)) {
-      return log("Dragify ~ You provided neither the `options.containers` nor the 'isContainer` function. At least one is required.");
+      return log("Dragify ~ You provided neither the `containers` array nor the 'isContainer` function. At least one is required.");
     }
     this.options = {
       threshold: {
@@ -69,6 +71,7 @@ Dragify = (function(superClass) {
     if (options.isContainer != null) {
       this.options.isContainer = options.isContainer;
     }
+    new Grid(this);
     new Handler(this);
   }
 
@@ -78,7 +81,7 @@ Dragify = (function(superClass) {
 
 module.exports = Dragify;
 
-},{"./handler":3,"mini-event-emitter":4}],2:[function(require,module,exports){
+},{"./grid":3,"./handler":4,"mini-event-emitter":5}],2:[function(require,module,exports){
 var Error;
 
 Error = (function() {
@@ -117,10 +120,89 @@ Error = (function() {
 module.exports = Error;
 
 },{}],3:[function(require,module,exports){
+var Error, Grid,
+  bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
+Error = require("./error");
+
+Grid = (function() {
+  function Grid(dragify) {
+    this.dragify = dragify;
+    this.mousedown = bind(this.mousedown, this);
+    if (this.dragify.options.grid != null) {
+      return;
+    }
+    this.load();
+    this.setup();
+    this.listeners();
+  }
+
+  Grid.prototype.load = function() {
+    return this.error = (new Error({
+      dragify: this.dragify
+    })).error;
+  };
+
+  Grid.prototype.setup = function() {};
+
+  Grid.prototype.listeners = function() {
+    return window.addEventListener("mousedown", this.mousedown);
+  };
+
+  Grid.prototype.mousedown = function(ev) {
+    if (ev.button !== 0) {
+      return;
+    }
+    if (!(this.node = this.validMousedown(ev.target))) {
+      return;
+    }
+    console.log("@node", this.node);
+    return window.addEventListener("mousemove", this.mousemove);
+  };
+
+  Grid.prototype.validMousedown = function(target) {
+    var check, validate;
+    check = (function(_this) {
+      return function(el) {
+        var e, error;
+        try {
+          return _this.validContainer(el);
+        } catch (error) {
+          e = error;
+          return false;
+        }
+      };
+    })(this);
+    validate = function(node) {
+      if (check(node.parentNode)) {
+        return node;
+      }
+      if (node.parentNode) {
+        return validate(node.parentNode);
+      }
+      return false;
+    };
+    return validate(target);
+  };
+
+  Grid.prototype.validContainer = function(el) {
+    if (!el || el === document) {
+      return false;
+    }
+    return this.dragify.containers.indexOf(el) !== -1 || this.dragify.options.isContainer(el);
+  };
+
+  return Grid;
+
+})();
+
+module.exports = Grid;
+
+},{"./error":2}],4:[function(require,module,exports){
 var Error, Handler,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-Error = require('./error');
+Error = require("./error");
 
 Handler = (function() {
   function Handler(dragify) {
@@ -128,6 +210,9 @@ Handler = (function() {
     this.mousemove = bind(this.mousemove, this);
     this.mousedown = bind(this.mousedown, this);
     this.mouseup = bind(this.mouseup, this);
+    if (this.dragify.options.grid == null) {
+      return;
+    }
     this.load();
     this.setup();
     this.listeners();
@@ -166,15 +251,15 @@ Handler = (function() {
   };
 
   Handler.prototype.listeners = function() {
-    window.addEventListener('mouseup', this.mouseup);
-    return window.addEventListener('mousedown', this.mousedown);
+    window.addEventListener("mouseup", this.mouseup);
+    return window.addEventListener("mousedown", this.mousedown);
   };
 
   Handler.prototype.mouseup = function(e) {
     if (e.button !== 0) {
       return;
     }
-    window.removeEventListener('mousemove', this.mousemove);
+    window.removeEventListener("mousemove", this.mousemove);
     if (this.active) {
       return this.reset();
     }
@@ -215,7 +300,7 @@ Handler = (function() {
       x: x,
       y: y
     };
-    return window.addEventListener('mousemove', this.mousemove);
+    return window.addEventListener("mousemove", this.mousemove);
   };
 
   Handler.prototype.validMousedown = function(target) {
@@ -231,17 +316,15 @@ Handler = (function() {
         }
       };
     })(this);
-    validate = (function(_this) {
-      return function(node) {
-        if (check(node.parentNode)) {
-          return node;
-        }
-        if (node.parentNode) {
-          return validate(node.parentNode);
-        }
-        return false;
-      };
-    })(this);
+    validate = function(node) {
+      if (check(node.parentNode)) {
+        return node;
+      }
+      if (node.parentNode) {
+        return validate(node.parentNode);
+      }
+      return false;
+    };
     return validate(target);
   };
 
@@ -352,7 +435,7 @@ Handler = (function() {
     var replaced;
     parent.insertBefore(node, target);
     replaced = this.target !== parent ? this.target : void 0;
-    return this.dragify.emit('move', this.node, this.node.parentNode, this.data.source, replaced);
+    return this.dragify.emit("move", this.node, this.node.parentNode, this.data.source, replaced);
   };
 
   Handler.prototype.transfer = function() {
@@ -389,25 +472,25 @@ Handler = (function() {
   };
 
   Handler.prototype.create = function() {
-    this.mirror = document.createElement('div');
+    this.mirror = document.createElement("div");
     this.mirror.tabIndex = 0;
-    return this.mirror.className = 'dragify--mirror';
+    return this.mirror.className = "dragify--mirror";
   };
 
   Handler.prototype.set = function() {
     var clone;
     this.previous.valid = this.node.parentNode;
-    this.dragify.emit('drag', this.node, this.node.parentNode);
+    this.dragify.emit("drag", this.node, this.node.parentNode);
     this.mirror.appendChild(clone = this.node.cloneNode(true));
     clone.style.width = this.node.offsetWidth + "px";
     clone.style.height = this.node.offsetHeight + "px";
     document.body.appendChild(this.mirror);
     this.mirror.focus();
-    this.addClass(document.body, 'dragify--body');
+    this.addClass(document.body, "dragify--body");
     if (this.dragify.options.transition) {
-      this.addClass(this.node, 'dragify--transition');
+      this.addClass(this.node, "dragify--transition");
     }
-    return this.addClass(this.node, 'dragify--opaque');
+    return this.addClass(this.node, "dragify--opaque");
   };
 
   Handler.prototype.reset = function() {
@@ -417,13 +500,13 @@ Handler = (function() {
       this.mirror.removeChild(this.mirror.firstChild);
     }
     document.body.removeChild(this.mirror);
-    this.mirror.removeAttribute('style');
-    this.removeClass(document.body, 'dragify--body');
-    this.removeClass(this.node, 'dragify--opaque');
+    this.mirror.removeAttribute("style");
+    this.removeClass(document.body, "dragify--body");
+    this.removeClass(this.node, "dragify--opaque");
     remove = (function(_this) {
       return function(node) {
         return setTimeout(function() {
-          return _this.removeClass(node, 'dragify--transition');
+          return _this.removeClass(node, "dragify--transition");
         }, 500);
       };
     })(this);
@@ -431,11 +514,11 @@ Handler = (function() {
       remove(this.node);
     }
     if (this.data.source === this.node.parentNode && this.data.index === this.getIndex(this.node)) {
-      this.dragify.emit('cancel', this.node, this.node.parentNode);
+      this.dragify.emit("cancel", this.node, this.node.parentNode);
     } else {
-      this.dragify.emit('drop', this.node, this.node.parentNode, this.data.source);
+      this.dragify.emit("drop", this.node, this.node.parentNode, this.data.source);
     }
-    this.dragify.emit('end', this.node);
+    this.dragify.emit("end", this.node);
     this.node = null;
     this.target = null;
     return this.setData();
@@ -445,20 +528,20 @@ Handler = (function() {
     var classes;
     classes = [];
     if (node.className) {
-      classes = node.className.split(' ');
+      classes = node.className.split(" ");
     }
     classes.push(className);
-    return node.className = classes.join(' ');
+    return node.className = classes.join(" ");
   };
 
   Handler.prototype.removeClass = function(node, className) {
     var classes;
-    classes = node.className.split(' ');
+    classes = node.className.split(" ");
     classes.splice(classes.indexOf(className), 1);
     if (classes.length === 0) {
-      return node.removeAttribute('class');
+      return node.removeAttribute("class");
     } else {
-      return node.className = classes.join(' ');
+      return node.className = classes.join(" ");
     }
   };
 
@@ -468,13 +551,14 @@ Handler = (function() {
 
 module.exports = Handler;
 
-},{"./error":2}],4:[function(require,module,exports){
+},{"./error":2}],5:[function(require,module,exports){
 var MiniEventEmitter;
 
 MiniEventEmitter = (function() {
   var _emit, error, isFunction, isString, objLength, optional;
 
   function MiniEventEmitter(obj) {
+    var webworkify;
     this.settings = {
       error: (obj != null ? obj.error : void 0) || false,
       trace: (obj != null ? obj.trace : void 0) || false,
@@ -485,8 +569,11 @@ MiniEventEmitter = (function() {
     if (!this.settings.worker) {
       return;
     }
+    if (!webworkify && !(webworkify = obj != null ? obj.webworkify : void 0)) {
+      return;
+    }
     this.worker = webworkify(this.settings.worker);
-    this.worker.addEventListener('message', (function(_this) {
+    this.worker.addEventListener("message", (function(_this) {
       return function(arg) {
         var data;
         data = arg.data;
@@ -504,13 +591,13 @@ MiniEventEmitter = (function() {
     var ref;
     ref = optional(group, fn), group = ref[0], fn = ref[1];
     if (!isString(event)) {
-      return error(this, 'on', 1);
+      return error(this, "on", 1);
     }
     if (!isString(group)) {
-      return error(this, 'on', 5);
+      return error(this, "on", 5);
     }
     if (!isFunction(fn)) {
-      return error(this, 'on', 6, event, group);
+      return error(this, "on", 6, event, group);
     }
     if (this.groups[group]) {
       if (this.groups[group][event]) {
@@ -547,16 +634,16 @@ MiniEventEmitter = (function() {
     })(this);
     ref = optional(group, fn), group = ref[0], fn = ref[1];
     if (event && !isString(event)) {
-      return error(this, 'off', 1);
+      return error(this, "off", 1);
     }
     if (!isString(group)) {
-      return error(this, 'off', 5);
+      return error(this, "off", 5);
     }
     if (fn && !isFunction(fn)) {
-      return error(this, 'off', 6, event, group);
+      return error(this, "off", 6, event, group);
     }
     if (event && !this.groups[group]) {
-      return error(this, 'off', 7, event, group);
+      return error(this, "off", 7, event, group);
     }
     if (!event) {
       ref1 = this.groups[group];
@@ -568,7 +655,7 @@ MiniEventEmitter = (function() {
       return this;
     }
     if (!(actions = this.groups[group][event])) {
-      return error(this, 'off', 4, event, group);
+      return error(this, "off", 4, event, group);
     }
     if (!fn) {
       removeFn();
@@ -579,7 +666,7 @@ MiniEventEmitter = (function() {
       return this;
     }
     if (-1 === (index1 = actions.indexOf(fn))) {
-      return error(this, 'off', 2, event, group);
+      return error(this, "off", 2, event, group);
     }
     actions.splice(index1, 1);
     if (actions.length === 0) {
@@ -614,7 +701,7 @@ MiniEventEmitter = (function() {
   };
 
   isString = function(event) {
-    return typeof event === 'string' || event instanceof String;
+    return typeof event === "string" || event instanceof String;
   };
 
   objLength = function(obj) {
@@ -622,7 +709,7 @@ MiniEventEmitter = (function() {
   };
 
   isFunction = function(fn) {
-    return typeof fn === 'function';
+    return typeof fn === "function";
   };
 
   error = function(self, name, id, event, group) {
@@ -641,7 +728,7 @@ MiniEventEmitter = (function() {
       msg += "Event was not provided";
     }
     if (id === 4) {
-      msg += "Event \"" + event + "\" does not exist";
+      msg += "EventListener for event \"" + event + "\" does not exist";
     }
     if (id === 5) {
       msg += "Provided group must be a string";
@@ -650,12 +737,14 @@ MiniEventEmitter = (function() {
       msg += "The last param provided with event \"" + event + "\" and group \"" + group + "\" is expected to be a function";
     }
     if (id === 7) {
-      msg += "Provided Group \"" + group + "\" doesn't have any events";
+      msg += "Provided Group \"" + group + "\" does not have any events";
     }
-    if (console.warn) {
-      console.warn(msg);
-    } else {
-      console.log(msg);
+    if (console) {
+      if (console.warn) {
+        console.warn(msg);
+      } else {
+        console.log(msg);
+      }
     }
     return self;
   };
@@ -663,10 +752,10 @@ MiniEventEmitter = (function() {
   optional = function(group, fn) {
     if ((fn == null) && isFunction(group)) {
       fn = group;
-      group = '';
+      group = "";
     } else {
       if (!group) {
-        group = '';
+        group = "";
       }
     }
     return [group, fn];
@@ -676,13 +765,13 @@ MiniEventEmitter = (function() {
     var action, args, event, i, internal, len, list, msg, self;
     self = arg.self, event = arg.event, args = arg.args, internal = arg.internal;
     if (!event) {
-      return error(self, 'emit', 3);
+      return error(self, "emit", 3);
     }
     if (!isString(event)) {
-      return error(self, 'emit', 1);
+      return error(self, "emit", 1);
     }
     if (!(list = self.events[event])) {
-      return error(self, 'emit', 4, event);
+      return error(self, "emit", 4, event);
     }
     if (self.settings.worker && !internal) {
       self.worker.postMessage({
@@ -710,20 +799,6 @@ MiniEventEmitter = (function() {
 
 })();
 
-(function() {
-  var msg;
-  if ((typeof module !== "undefined" && module !== null) && module.exports) {
-    return module.exports = MiniEventEmitter;
-  } else if (window) {
-    return window.MiniEventEmitter = MiniEventEmitter;
-  } else {
-    msg = "Cannot expose MiniEventEmitter";
-    if (console.warn) {
-      return console.warn(msg);
-    } else {
-      return console.log(msg);
-    }
-  }
-})();
+module.exports = MiniEventEmitter;
 
 },{}]},{},[1])
