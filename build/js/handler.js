@@ -1,7 +1,7 @@
 var Error, Handler,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-Error = require('./error');
+Error = require("./error");
 
 Handler = (function() {
   function Handler(dragify) {
@@ -47,15 +47,15 @@ Handler = (function() {
   };
 
   Handler.prototype.listeners = function() {
-    window.addEventListener('mouseup', this.mouseup);
-    return window.addEventListener('mousedown', this.mousedown);
+    window.addEventListener("mouseup", this.mouseup);
+    return window.addEventListener("mousedown", this.mousedown);
   };
 
   Handler.prototype.mouseup = function(e) {
     if (e.button !== 0) {
       return;
     }
-    window.removeEventListener('mousemove', this.mousemove);
+    window.removeEventListener("mousemove", this.mousemove);
     if (this.active) {
       return this.reset();
     }
@@ -63,7 +63,7 @@ Handler = (function() {
 
   Handler.prototype.mousedown = function(ev) {
     var check, found, x, y;
-    if (ev.button !== 0) {
+    if (ev.button !== 0 || this.active) {
       return;
     }
     if (!(this.node = this.validMousedown(ev.target))) {
@@ -96,7 +96,7 @@ Handler = (function() {
       x: x,
       y: y
     };
-    return window.addEventListener('mousemove', this.mousemove);
+    return window.addEventListener("mousemove", this.mousemove);
   };
 
   Handler.prototype.validMousedown = function(target) {
@@ -112,17 +112,15 @@ Handler = (function() {
         }
       };
     })(this);
-    validate = (function(_this) {
-      return function(node) {
-        if (check(node.parentNode)) {
-          return node;
-        }
-        if (node.parentNode) {
-          return validate(node.parentNode);
-        }
-        return false;
-      };
-    })(this);
+    validate = function(node) {
+      if (check(node.parentNode)) {
+        return node;
+      }
+      if (node.parentNode) {
+        return validate(node.parentNode);
+      }
+      return false;
+    };
     return validate(target);
   };
 
@@ -233,7 +231,7 @@ Handler = (function() {
     var replaced;
     parent.insertBefore(node, target);
     replaced = this.target !== parent ? this.target : void 0;
-    return this.dragify.emit('move', this.node, this.node.parentNode, this.data.source, replaced);
+    return this.dragify.emit("move", this.node, this.node.parentNode, this.data.source, replaced);
   };
 
   Handler.prototype.transfer = function() {
@@ -270,25 +268,25 @@ Handler = (function() {
   };
 
   Handler.prototype.create = function() {
-    this.mirror = document.createElement('div');
+    this.mirror = document.createElement("div");
     this.mirror.tabIndex = 0;
-    return this.mirror.className = 'dragify--mirror';
+    return this.mirror.className = "dragify--mirror";
   };
 
   Handler.prototype.set = function() {
     var clone;
     this.previous.valid = this.node.parentNode;
-    this.dragify.emit('drag', this.node, this.node.parentNode);
+    this.dragify.emit("drag", this.node, this.node.parentNode);
     this.mirror.appendChild(clone = this.node.cloneNode(true));
     clone.style.width = this.node.offsetWidth + "px";
     clone.style.height = this.node.offsetHeight + "px";
     document.body.appendChild(this.mirror);
     this.mirror.focus();
-    this.addClass(document.body, 'dragify--body');
+    this.addClass(document.body, "dragify--body");
     if (this.dragify.options.transition) {
-      this.addClass(this.node, 'dragify--transition');
+      this.addClass(this.node, "dragify--transition");
     }
-    return this.addClass(this.node, 'dragify--opaque');
+    return this.addClass(this.node, "dragify--opaque");
   };
 
   Handler.prototype.reset = function() {
@@ -298,13 +296,13 @@ Handler = (function() {
       this.mirror.removeChild(this.mirror.firstChild);
     }
     document.body.removeChild(this.mirror);
-    this.mirror.removeAttribute('style');
-    this.removeClass(document.body, 'dragify--body');
-    this.removeClass(this.node, 'dragify--opaque');
+    this.mirror.removeAttribute("style");
+    this.removeClass(document.body, "dragify--body");
+    this.removeClass(this.node, "dragify--opaque");
     remove = (function(_this) {
       return function(node) {
         return setTimeout(function() {
-          return _this.removeClass(node, 'dragify--transition');
+          return _this.removeClass(node, "dragify--transition");
         }, 500);
       };
     })(this);
@@ -312,11 +310,11 @@ Handler = (function() {
       remove(this.node);
     }
     if (this.data.source === this.node.parentNode && this.data.index === this.getIndex(this.node)) {
-      this.dragify.emit('cancel', this.node, this.node.parentNode);
+      this.dragify.emit("cancel", this.node, this.node.parentNode);
     } else {
-      this.dragify.emit('drop', this.node, this.node.parentNode, this.data.source);
+      this.dragify.emit("drop", this.node, this.node.parentNode, this.data.source);
     }
-    this.dragify.emit('end', this.node);
+    this.dragify.emit("end", this.node);
     this.node = null;
     this.target = null;
     return this.setData();
@@ -326,20 +324,20 @@ Handler = (function() {
     var classes;
     classes = [];
     if (node.className) {
-      classes = node.className.split(' ');
+      classes = node.className.split(" ");
     }
     classes.push(className);
-    return node.className = classes.join(' ');
+    return node.className = classes.join(" ");
   };
 
   Handler.prototype.removeClass = function(node, className) {
     var classes;
-    classes = node.className.split(' ');
+    classes = node.className.split(" ");
     classes.splice(classes.indexOf(className), 1);
     if (classes.length === 0) {
-      return node.removeAttribute('class');
+      return node.removeAttribute("class");
     } else {
-      return node.className = classes.join(' ');
+      return node.className = classes.join(" ");
     }
   };
 

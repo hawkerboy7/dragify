@@ -73,8 +73,8 @@ class Handler
 
 	mousedown: (ev) =>
 
-		# Only continue if left mouseclick
-		return if ev.button isnt 0
+		# Only continue if left mouseclick or currently nothing is being dragged
+		return if ev.button isnt 0 or @active
 
 		# Check if this target is a valid node or has a valid node in its ancestry
 		return if not @node = @validMousedown ev.target

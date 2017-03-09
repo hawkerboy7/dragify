@@ -44,7 +44,7 @@ Dragify = (function(superClass) {
       }
     }
     if (this.containers.length === 0 && (options.isContainer == null)) {
-      return log("Dragify ~ You provided neither the `options.containers` nor the 'isContainer` function. At least one is required.");
+      return log("Dragify ~ You provided neither the `containers` array nor the 'isContainer` function. At least one is required.");
     }
     this.options = {
       threshold: {
