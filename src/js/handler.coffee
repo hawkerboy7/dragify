@@ -282,7 +282,7 @@ class Handler
 		replaced = if @target isnt parent then @target else undefined
 
 		# The original element is being moved
-		@dragify.emit "move", @node, @node.parentNode, @data.source, replaced
+		@dragify.emitIf "move", @node, @node.parentNode, @data.source, replaced
 
 
 
@@ -348,7 +348,7 @@ class Handler
 		@previous.valid = @node.parentNode
 
 		# Start the dragging
-		@dragify.emit "drag", @node, @node.parentNode
+		@dragify.emitIf "drag", @node, @node.parentNode
 
 		# Create a copy of the node to-be-dragged
 		@mirror.appendChild clone = @node.cloneNode true
@@ -410,15 +410,15 @@ class Handler
 		if @data.source is @node.parentNode and @data.index is @getIndex @node
 
 			# Node ended up at the place where it came from
-			@dragify.emit "cancel", @node, @node.parentNode
+			@dragify.emitIf "cancel", @node, @node.parentNode
 
 		else
 
 			# End of the dragging to a new position
-			@dragify.emit "drop", @node, @node.parentNode, @data.source
+			@dragify.emitIf "drop", @node, @node.parentNode, @data.source
 
 		# Indicate end of a drag (which may have resulted in a drop or cancel)
-		@dragify.emit "end", @node
+		@dragify.emitIf "end", @node
 
 		# Empty node reference
 		@node = null

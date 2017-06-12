@@ -1,23 +1,8 @@
-# --------------------------------------------------
-# Expose
-# --------------------------------------------------
-
-# Require | Browserify, Node
+# NPM
 MiniEventEmitter = require "mini-event-emitter"
 
-# Always
+# Modules
 Handler = require "./handler"
-
-
-
-# Log the message to the console (as a warning if available)
-log = (msg) -> if console.warn then console.warn msg else console.log msg
-
-# Check if MiniEventEmitter is defined
-if not MiniEventEmitter?
-
-	# Make sure the MiniEventEmitter is defined
-	log "Dragify ~ Dragify depends on the MiniEventEmitter.\nhttps://github.com/hawkerboy7/mini-event-emitter\nDefine it before Dragify"
 
 
 
@@ -62,7 +47,15 @@ class Dragify extends MiniEventEmitter
 			@containers = @containers.concat options.containers if options.containers
 
 		# Make sure containers are provided or can be found dynamically
-		return log "Dragify ~ You provided neither the `containers` array nor the 'isContainer` function. At least one is required." if @containers.length is 0 and not options.isContainer?
+		if @containers.length is 0 and not options.isContainer?
+
+			msg = "Dragify ~ You provided neither the `containers` array nor the 'isContainer` function. At least one is required."
+
+			if console.warn then console.warn msg else console.log msg
+
+			return
+
+
 
 		# --------------------------------------------------
 		# Default options
