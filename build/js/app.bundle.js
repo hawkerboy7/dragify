@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var Dragify, Handler, MiniEventEmitter, log,
+var Dragify, Handler, MiniEventEmitter,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
@@ -7,23 +7,11 @@ MiniEventEmitter = require("mini-event-emitter");
 
 Handler = require("./handler");
 
-log = function(msg) {
-  if (console.warn) {
-    return console.warn(msg);
-  } else {
-    return console.log(msg);
-  }
-};
-
-if (MiniEventEmitter == null) {
-  log("Dragify ~ Dragify depends on the MiniEventEmitter.\nhttps://github.com/hawkerboy7/mini-event-emitter\nDefine it before Dragify");
-}
-
 Dragify = (function(superClass) {
   extend(Dragify, superClass);
 
   function Dragify(containers, options) {
-    var ref, ref1, x, y;
+    var msg, ref, ref1, x, y;
     this.containers = containers;
     Dragify.__super__.constructor.apply(this, arguments);
     if (!options) {
@@ -45,7 +33,13 @@ Dragify = (function(superClass) {
       }
     }
     if (this.containers.length === 0 && (options.isContainer == null)) {
-      return log("Dragify ~ You provided neither the `containers` array nor the 'isContainer` function. At least one is required.");
+      msg = "Dragify ~ You provided neither the `containers` array nor the 'isContainer` function. At least one is required.";
+      if (console.warn) {
+        console.warn(msg);
+      } else {
+        console.log(msg);
+      }
+      return;
     }
     this.options = {
       threshold: {
@@ -78,7 +72,7 @@ Dragify = (function(superClass) {
 
 module.exports = Dragify;
 
-},{"./handler":3,"mini-event-emitter":4}],2:[function(require,module,exports){
+},{"./handler":3,"mini-event-emitter":5}],2:[function(require,module,exports){
 var Error;
 
 Error = (function() {
@@ -222,7 +216,7 @@ Handler = (function() {
     var check, validate;
     check = (function(_this) {
       return function(el) {
-        var e, error;
+        var e;
         try {
           return _this.validContainer(el);
         } catch (error) {
@@ -350,7 +344,7 @@ Handler = (function() {
     var replaced;
     parent.insertBefore(node, target);
     replaced = this.target !== parent ? this.target : void 0;
-    return this.dragify.emit("move", this.node, this.node.parentNode, this.data.source, replaced);
+    return this.dragify.emitIf("move", this.node, this.node.parentNode, this.data.source, replaced);
   };
 
   Handler.prototype.transfer = function() {
@@ -395,7 +389,7 @@ Handler = (function() {
   Handler.prototype.set = function() {
     var clone;
     this.previous.valid = this.node.parentNode;
-    this.dragify.emit("drag", this.node, this.node.parentNode);
+    this.dragify.emitIf("drag", this.node, this.node.parentNode);
     this.mirror.appendChild(clone = this.node.cloneNode(true));
     clone.style.width = this.node.offsetWidth + "px";
     clone.style.height = this.node.offsetHeight + "px";
@@ -429,11 +423,11 @@ Handler = (function() {
       remove(this.node);
     }
     if (this.data.source === this.node.parentNode && this.data.index === this.getIndex(this.node)) {
-      this.dragify.emit("cancel", this.node, this.node.parentNode);
+      this.dragify.emitIf("cancel", this.node, this.node.parentNode);
     } else {
-      this.dragify.emit("drop", this.node, this.node.parentNode, this.data.source);
+      this.dragify.emitIf("drop", this.node, this.node.parentNode, this.data.source);
     }
-    this.dragify.emit("end", this.node);
+    this.dragify.emitIf("end", this.node);
     this.node = null;
     this.target = null;
     return this.setData();
@@ -467,170 +461,152 @@ Handler = (function() {
 module.exports = Handler;
 
 },{"./error":2}],4:[function(require,module,exports){
-var MiniEventEmitter;
+var MiniEventEmitter,
+  bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 MiniEventEmitter = (function() {
-  var _emit, error, isFunction, isString, objLength, optional;
-
-  function MiniEventEmitter(obj) {
-    var webworkify;
-    this.settings = {
+  function MiniEventEmitter(mini, obj) {
+    this.mini = mini;
+    this.removeFn = bind(this.removeFn, this);
+    this.removeFns = bind(this.removeFns, this);
+    this.emit = bind(this.emit, this);
+    this.emitIf = bind(this.emitIf, this);
+    this.off = bind(this.off, this);
+    this.on = bind(this.on, this);
+    this.mini.settings = {
       error: (obj != null ? obj.error : void 0) || false,
-      trace: (obj != null ? obj.trace : void 0) || false,
-      worker: (obj != null ? obj.worker : void 0) || null
+      trace: (obj != null ? obj.trace : void 0) || false
     };
-    this.events = {};
-    this.groups = {};
-    if (!this.settings.worker) {
-      return;
-    }
-    if (!webworkify && !(webworkify = obj != null ? obj.webworkify : void 0)) {
-      return;
-    }
-    this.worker = webworkify(this.settings.worker);
-    this.worker.addEventListener("message", (function(_this) {
-      return function(arg) {
-        var data;
-        data = arg.data;
-        return _emit({
-          self: _this,
-          args: data.args,
-          event: data.event,
-          internal: true
-        });
-      };
-    })(this));
+    this.mini.events = {};
+    this.mini.groups = {};
   }
 
   MiniEventEmitter.prototype.on = function(event, group, fn) {
-    var ref;
-    ref = optional(group, fn), group = ref[0], fn = ref[1];
-    if (!isString(event)) {
-      return error(this, "on", 1);
+    var events, groups, ref;
+    ref = this.optional(group, fn), group = ref[0], fn = ref[1];
+    if (!this.valid("on", event, group, fn)) {
+      return this.mini;
     }
-    if (!isString(group)) {
-      return error(this, "on", 5);
-    }
-    if (!isFunction(fn)) {
-      return error(this, "on", 6, event, group);
-    }
-    if (this.groups[group]) {
-      if (this.groups[group][event]) {
-        this.groups[group][event].push(fn);
+    if ((groups = this.mini.groups)[group]) {
+      if (groups[group][event]) {
+        groups[group][event].push(fn);
       } else {
-        this.groups[group][event] = [fn];
+        groups[group][event] = [fn];
       }
     } else {
-      this.groups[group] = {};
-      this.groups[group][event] = [fn];
+      groups[group] = {};
+      groups[group][event] = [fn];
     }
-    if (this.events[event]) {
-      this.events[event].push(fn);
+    if ((events = this.mini.events)[event]) {
+      events[event].push(fn);
     } else {
-      this.events[event] = [fn];
+      events[event] = [fn];
     }
-    return this;
+    return this.mini;
   };
 
   MiniEventEmitter.prototype.off = function(event, group, fn) {
-    var actions, index1, index2, ref, ref1, removeFn;
-    removeFn = (function(_this) {
-      return function() {
-        var action, i, index, len;
-        for (i = 0, len = actions.length; i < len; i++) {
-          action = actions[i];
-          index = _this.events[event].indexOf(action);
-          _this.events[event].splice(index, 1);
-        }
-        if (_this.events[event].length === 0) {
-          return delete _this.events[event];
-        }
-      };
-    })(this);
-    ref = optional(group, fn), group = ref[0], fn = ref[1];
-    if (event && !isString(event)) {
-      return error(this, "off", 1);
+    var fns, index, ref;
+    if (arguments.length === 0) {
+      return this.removeAll();
     }
-    if (!isString(group)) {
-      return error(this, "off", 5);
+    ref = this.optional(group, fn), group = ref[0], fn = ref[1];
+    if (!this.valid("off", event, group, fn)) {
+      return this.mini;
     }
-    if (fn && !isFunction(fn)) {
-      return error(this, "off", 6, event, group);
-    }
-    if (event && !this.groups[group]) {
-      return error(this, "off", 7, event, group);
+    if (!this.mini.groups[group]) {
+      this.error("off", 7, event, group);
+      return this.mini;
     }
     if (!event) {
-      ref1 = this.groups[group];
-      for (event in ref1) {
-        actions = ref1[event];
-        removeFn();
-      }
-      delete this.groups[group];
-      return this;
+      return this.removeGroup(group);
     }
-    if (!(actions = this.groups[group][event])) {
-      return error(this, "off", 4, event, group);
+    if (!(fns = this.mini.groups[group][event])) {
+      this.error("off", 8, event, group);
+      return this.mini;
     }
     if (!fn) {
-      removeFn();
-      delete this.groups[group][event];
-      if (0 === objLength(this.groups[group])) {
-        delete this.groups[group];
-      }
-      return this;
+      this.removeFns(event, fns);
+      return this.mini;
     }
-    if (-1 === (index1 = actions.indexOf(fn))) {
-      return error(this, "off", 2, event, group);
+    if (-1 === (index = fns.indexOf(fn))) {
+      this.error("off", 2, event, group);
+      return this.mini;
     }
-    actions.splice(index1, 1);
-    if (actions.length === 0) {
-      delete this.groups[group][event];
-    }
-    if (0 === objLength(this.groups[group])) {
-      delete this.groups[group];
-    }
-    index2 = this.events[event].indexOf(fn);
-    this.events[event].splice(index2, 1);
-    if (this.events[event].length === 0) {
-      delete this.events[event];
-    }
-    return this;
+    this.removeFn(event, group, fns, fn, index);
+    return this.mini;
+  };
+
+  MiniEventEmitter.prototype.emitIf = function() {
+    return this._emit(arguments, true);
   };
 
   MiniEventEmitter.prototype.emit = function() {
-    var args, event;
-    args = Array.from(arguments);
+    return this._emit(arguments);
+  };
+
+  MiniEventEmitter.prototype._emit = function(args, skip) {
+    var event, fn, fns, i, len;
+    args = Array.from(args);
     event = args.shift();
-    return _emit({
-      self: this,
-      args: args,
-      event: event,
-      internal: false
-    });
+    if (!(fns = this.validEvent(event, skip))) {
+      return this.mini;
+    }
+    this.trace(event, args);
+    for (i = 0, len = fns.length; i < len; i++) {
+      fn = fns[i];
+      fn.apply(fn, args);
+    }
+    return this.mini;
   };
 
-  MiniEventEmitter.prototype.trigger = function() {
-    this.emit.apply(this, arguments);
-    return this;
+  MiniEventEmitter.prototype.valid = function(name, event, group, fn) {
+    if (name === "on") {
+      if (!this.isString(event)) {
+        return this.error(name, 1);
+      }
+      if (!this.isString(group)) {
+        return this.error(name, 5);
+      }
+      if (!this.isFunction(fn)) {
+        return this.error(name, 6, event, group);
+      }
+    }
+    if (name === "off") {
+      if (event !== null && !this.isString(event)) {
+        return this.error(name, 1);
+      }
+      if (!this.isString(group)) {
+        return this.error(name, 5);
+      }
+      if (fn && !this.isFunction(fn)) {
+        return this.error(name, 6, event, group);
+      }
+    }
+    return true;
   };
 
-  isString = function(event) {
-    return typeof event === "string" || event instanceof String;
+  MiniEventEmitter.prototype.validEvent = function(event, skip) {
+    var fns;
+    if (!event) {
+      return this.error("emit", 3);
+    }
+    if (!this.isString(event)) {
+      return this.error("emit", 1);
+    }
+    if (!(fns = this.mini.events[event])) {
+      if (!skip) {
+        this.error("emit", 4, event);
+      }
+      return null;
+    }
+    return fns;
   };
 
-  objLength = function(obj) {
-    return Object.keys(obj).length;
-  };
-
-  isFunction = function(fn) {
-    return typeof fn === "function";
-  };
-
-  error = function(self, name, id, event, group) {
+  MiniEventEmitter.prototype.error = function(name, id, event, group) {
     var msg;
-    if (!self.settings.error) {
-      return self;
+    if (!this.mini.settings.error) {
+      return null;
     }
     msg = "MiniEventEmitter ~ " + name + " ~ ";
     if (id === 1) {
@@ -652,7 +628,10 @@ MiniEventEmitter = (function() {
       msg += "The last param provided with event \"" + event + "\" and group \"" + group + "\" is expected to be a function";
     }
     if (id === 7) {
-      msg += "Provided Group \"" + group + "\" does not have any events";
+      msg += "Provided group \"" + group + "\" is not found";
+    }
+    if (id === 8) {
+      msg += "Event \"" + event + "\" does not exist for the provided group \"" + group + "\"";
     }
     if (console) {
       if (console.warn) {
@@ -661,11 +640,11 @@ MiniEventEmitter = (function() {
         console.log(msg);
       }
     }
-    return self;
+    return null;
   };
 
-  optional = function(group, fn) {
-    if ((fn == null) && isFunction(group)) {
+  MiniEventEmitter.prototype.optional = function(group, fn) {
+    if ((fn == null) && this.isFunction(group)) {
       fn = group;
       group = "";
     } else {
@@ -676,38 +655,80 @@ MiniEventEmitter = (function() {
     return [group, fn];
   };
 
-  _emit = function(arg) {
-    var action, args, event, i, internal, len, list, msg, self;
-    self = arg.self, event = arg.event, args = arg.args, internal = arg.internal;
-    if (!event) {
-      return error(self, "emit", 3);
+  MiniEventEmitter.prototype.removeAll = function() {
+    this.mini.events = {};
+    this.mini.groups = {};
+    return this.mini;
+  };
+
+  MiniEventEmitter.prototype.removeGroup = function(group) {
+    var event, fns, ref;
+    ref = this.mini.groups[group];
+    for (event in ref) {
+      fns = ref[event];
+      this.removeFns(event, fns);
     }
-    if (!isString(event)) {
-      return error(self, "emit", 1);
+    delete this.mini.groups[group];
+    return this.mini;
+  };
+
+  MiniEventEmitter.prototype.removeFns = function(event, fns) {
+    var fn, i, index, len;
+    for (i = 0, len = fns.length; i < len; i++) {
+      fn = fns[i];
+      index = this.mini.events[event].indexOf(fn);
+      this.mini.events[event].splice(index, 1);
     }
-    if (!(list = self.events[event])) {
-      return error(self, "emit", 4, event);
+    if (this.mini.events[event].length === 0) {
+      return delete this.mini.events[event];
     }
-    if (self.settings.worker && !internal) {
-      self.worker.postMessage({
-        args: args,
-        event: event
-      });
-    } else {
-      if (self.settings.trace) {
-        msg = "MiniEventEmitter ~ trace ~ " + event;
+  };
+
+  MiniEventEmitter.prototype.removeFn = function(event, group, fns, fn, index) {
+    fns.splice(index, 1);
+    if (fns.length === 0) {
+      delete this.mini.groups[group][event];
+    }
+    if (0 === this.objLength(this.mini.groups[group])) {
+      delete this.mini.groups[group];
+    }
+    index = this.mini.events[event].indexOf(fn);
+    this.mini.events[event].splice(index, 1);
+    if (this.mini.events[event].length === 0) {
+      return delete this.mini.events[event];
+    }
+  };
+
+  MiniEventEmitter.prototype.trace = function(event, args) {
+    var msg;
+    if (this.mini.settings.trace) {
+      msg = "MiniEventEmitter ~ trace ~ " + event;
+      if (args.length === 0) {
         if (console.debug) {
-          console.debug(msg);
+          return console.log("%c " + msg, "color: #13d");
         } else {
-          console.log(msg);
+          return console.log(msg);
+        }
+      } else {
+        if (console.debug) {
+          return console.log("%c " + msg, "color: #13d", args);
+        } else {
+          return console.log(msg, args);
         }
       }
-      for (i = 0, len = list.length; i < len; i++) {
-        action = list[i];
-        action.apply(action, args);
-      }
     }
-    return self;
+  };
+
+  MiniEventEmitter.prototype.isString = function(event) {
+    return typeof event === "string" || event instanceof String;
+  };
+
+  MiniEventEmitter.prototype.objLength = function(obj) {
+    return Object.keys(obj).length;
+  };
+
+  MiniEventEmitter.prototype.isFunction = function(fn) {
+    return typeof fn === "function";
   };
 
   return MiniEventEmitter;
@@ -716,4 +737,27 @@ MiniEventEmitter = (function() {
 
 module.exports = MiniEventEmitter;
 
-},{}]},{},[1])
+},{}],5:[function(require,module,exports){
+var Handler, MiniEventEmitter;
+
+Handler = require("./handler");
+
+MiniEventEmitter = (function() {
+  function MiniEventEmitter(obj) {
+    var handler;
+    handler = new Handler(this, obj);
+    this.on = handler.on;
+    this.off = handler.off;
+    this.emit = handler.emit;
+    this.emitIf = handler.emitIf;
+    this.trigger = handler.emit;
+    this.triggerIf = handler.emitIf;
+  }
+
+  return MiniEventEmitter;
+
+})();
+
+module.exports = MiniEventEmitter;
+
+},{"./handler":4}]},{},[1])

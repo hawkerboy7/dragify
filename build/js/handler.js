@@ -103,7 +103,7 @@ Handler = (function() {
     var check, validate;
     check = (function(_this) {
       return function(el) {
-        var e, error;
+        var e;
         try {
           return _this.validContainer(el);
         } catch (error) {
@@ -231,7 +231,7 @@ Handler = (function() {
     var replaced;
     parent.insertBefore(node, target);
     replaced = this.target !== parent ? this.target : void 0;
-    return this.dragify.emit("move", this.node, this.node.parentNode, this.data.source, replaced);
+    return this.dragify.emitIf("move", this.node, this.node.parentNode, this.data.source, replaced);
   };
 
   Handler.prototype.transfer = function() {
@@ -276,7 +276,7 @@ Handler = (function() {
   Handler.prototype.set = function() {
     var clone;
     this.previous.valid = this.node.parentNode;
-    this.dragify.emit("drag", this.node, this.node.parentNode);
+    this.dragify.emitIf("drag", this.node, this.node.parentNode);
     this.mirror.appendChild(clone = this.node.cloneNode(true));
     clone.style.width = this.node.offsetWidth + "px";
     clone.style.height = this.node.offsetHeight + "px";
@@ -310,11 +310,11 @@ Handler = (function() {
       remove(this.node);
     }
     if (this.data.source === this.node.parentNode && this.data.index === this.getIndex(this.node)) {
-      this.dragify.emit("cancel", this.node, this.node.parentNode);
+      this.dragify.emitIf("cancel", this.node, this.node.parentNode);
     } else {
-      this.dragify.emit("drop", this.node, this.node.parentNode, this.data.source);
+      this.dragify.emitIf("drop", this.node, this.node.parentNode, this.data.source);
     }
-    this.dragify.emit("end", this.node);
+    this.dragify.emitIf("end", this.node);
     this.node = null;
     this.target = null;
     return this.setData();
