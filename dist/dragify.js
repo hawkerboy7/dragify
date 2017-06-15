@@ -164,6 +164,8 @@ Handler = (function() {
   };
 
   Handler.prototype.listeners = function() {
+    window.addEventListener('touchend', this.mouseup);
+    window.addEventListener('touchstart', this.mousedown);
     window.addEventListener('mouseup', this.mouseup);
     return window.addEventListener('mousedown', this.mousedown);
   };
@@ -172,6 +174,7 @@ Handler = (function() {
     if (e.button !== 0) {
       return;
     }
+    window.removeEventListener('touchmove', this.mousemove);
     window.removeEventListener('mousemove', this.mousemove);
     if (this.active) {
       return this.reset();
@@ -213,6 +216,7 @@ Handler = (function() {
       x: x,
       y: y
     };
+    window.addEventListener('touchmove', this.mousemove);
     return window.addEventListener('mousemove', this.mousemove);
   };
 
@@ -467,3 +471,5 @@ Handler = (function() {
 module.exports = Handler;
 
 },{"./error":2}]},{},[1])
+Contact GitHub API Training Shop Blog About
+© 2017 GitHub, Inc. Terms Privacy Security Status Help
