@@ -526,8 +526,7 @@ MiniEventEmitter = (function() {
       return this.mini;
     }
     if (!fn) {
-      this.removeFns(event, fns);
-      return this.mini;
+      return this.removeFns(event, group, fns);
     }
     if (-1 === (index = fns.indexOf(fn))) {
       this.error("off", 2, event, group);
@@ -666,25 +665,24 @@ MiniEventEmitter = (function() {
     ref = this.mini.groups[group];
     for (event in ref) {
       fns = ref[event];
-      this.removeFns(event, fns);
+      this.removeFns(event, group, fns);
     }
-    delete this.mini.groups[group];
     return this.mini;
   };
 
-  MiniEventEmitter.prototype.removeFns = function(event, fns) {
-    var fn, i, index, len;
-    for (i = 0, len = fns.length; i < len; i++) {
+  MiniEventEmitter.prototype.removeFns = function(event, group, fns) {
+    var fn, i;
+    for (i = fns.length - 1; i >= 0; i += -1) {
       fn = fns[i];
-      index = this.mini.events[event].indexOf(fn);
-      this.mini.events[event].splice(index, 1);
+      this.removeFn(event, group, fns, fn);
     }
-    if (this.mini.events[event].length === 0) {
-      return delete this.mini.events[event];
-    }
+    return this.mini;
   };
 
   MiniEventEmitter.prototype.removeFn = function(event, group, fns, fn, index) {
+    if (!index) {
+      index = fns.indexOf(fn);
+    }
     fns.splice(index, 1);
     if (fns.length === 0) {
       delete this.mini.groups[group][event];

@@ -6,7 +6,7 @@
   "author": "Dexter Esajas <dexter.esajas@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "mini-event-emitter": "^0.7.0"
+    "mini-event-emitter": "^0.7.1"
   },
   "devDependencies": {
     "de-builder": "^0.7.1"
