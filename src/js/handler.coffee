@@ -19,6 +19,9 @@ class Handler
 
 	setup: ->
 
+		# Set the name of possibly logged events
+		@dragify.settings.name = "Dragify"
+
 		# Define the containers storage
 		@dragify.containers = [] if not @dragify.containers
 
