@@ -21,6 +21,7 @@ Handler = (function() {
   };
 
   Handler.prototype.setup = function() {
+    this.dragify.settings.name = "Dragify";
     if (!this.dragify.containers) {
       this.dragify.containers = [];
     }

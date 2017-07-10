@@ -134,6 +134,7 @@ Handler = (function() {
   };
 
   Handler.prototype.setup = function() {
+    this.dragify.settings.name = "Dragify";
     if (!this.dragify.containers) {
       this.dragify.containers = [];
     }
@@ -474,6 +475,7 @@ MiniEventEmitter = (function() {
     this.off = bind(this.off, this);
     this.on = bind(this.on, this);
     this.mini.settings = {
+      name: (obj != null ? obj.name : void 0) || "MiniEventEmitter",
       error: (obj != null ? obj.error : void 0) || false,
       trace: (obj != null ? obj.trace : void 0) || false
     };
@@ -526,8 +528,7 @@ MiniEventEmitter = (function() {
       return this.mini;
     }
     if (!fn) {
-      this.removeFns(event, fns);
-      return this.mini;
+      return this.removeFns(event, group, fns);
     }
     if (-1 === (index = fns.indexOf(fn))) {
       this.error("off", 2, event, group);
@@ -608,7 +609,7 @@ MiniEventEmitter = (function() {
     if (!this.mini.settings.error) {
       return null;
     }
-    msg = "MiniEventEmitter ~ " + name + " ~ ";
+    msg = this.mini.settings.name + " ~ " + name + " ~ ";
     if (id === 1) {
       msg += "Event name must be a string";
     }
@@ -666,25 +667,24 @@ MiniEventEmitter = (function() {
     ref = this.mini.groups[group];
     for (event in ref) {
       fns = ref[event];
-      this.removeFns(event, fns);
+      this.removeFns(event, group, fns);
     }
-    delete this.mini.groups[group];
     return this.mini;
   };
 
-  MiniEventEmitter.prototype.removeFns = function(event, fns) {
-    var fn, i, index, len;
-    for (i = 0, len = fns.length; i < len; i++) {
+  MiniEventEmitter.prototype.removeFns = function(event, group, fns) {
+    var fn, i;
+    for (i = fns.length - 1; i >= 0; i += -1) {
       fn = fns[i];
-      index = this.mini.events[event].indexOf(fn);
-      this.mini.events[event].splice(index, 1);
+      this.removeFn(event, group, fns, fn);
     }
-    if (this.mini.events[event].length === 0) {
-      return delete this.mini.events[event];
-    }
+    return this.mini;
   };
 
   MiniEventEmitter.prototype.removeFn = function(event, group, fns, fn, index) {
+    if (!index) {
+      index = fns.indexOf(fn);
+    }
     fns.splice(index, 1);
     if (fns.length === 0) {
       delete this.mini.groups[group][event];
@@ -702,7 +702,7 @@ MiniEventEmitter = (function() {
   MiniEventEmitter.prototype.trace = function(event, args) {
     var msg;
     if (this.mini.settings.trace) {
-      msg = "MiniEventEmitter ~ trace ~ " + event;
+      msg = this.mini.settings.name + " ~ trace ~ " + event;
       if (args.length === 0) {
         if (console.debug) {
           return console.log("%c " + msg, "color: #13d");
