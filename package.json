@@ -1,6 +1,6 @@
 {
   "name": "dragify",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "description": "Easily turn your DOM elements into dragable elements",
   "main": "./build/js/app.js",
   "author": "Dexter Esajas <dexter.esajas@gmail.com>",
@@ -9,7 +9,7 @@
     "mini-event-emitter": "^0.8.0"
   },
   "devDependencies": {
-    "de-builder": "^0.7.6"
+    "de-builder": "^0.9.2"
   },
   "repository": {
     "type": "git",
