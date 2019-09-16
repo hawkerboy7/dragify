@@ -67,6 +67,9 @@ Handler = (function() {
     if (ev.button !== 0 || this.active) {
       return;
     }
+    if (ev.target.tagName === "INPUT" || ev.target.tagName === "TEXTAREA") {
+      return;
+    }
     if (!(this.node = this.validMousedown(ev.target))) {
       return;
     }
