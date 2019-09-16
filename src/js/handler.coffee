@@ -80,7 +80,7 @@ class Handler
 		return if ev.button isnt 0 or @active
 
 		# Do not allow dragify to drag and drop on inputs or textarea's
-		return if ev.target.tagName is "INPUT" or ev.target.tagName is "TEXTAREA"
+		return if ev.target.tagName is "INPUT" or ev.target.tagName is "TEXTAREA" or ev.target.tagName is "LABEL"
 
 		# Check if this target is a valid node or has a valid node in its ancestry
 		return if not @node = @validMousedown ev.target
