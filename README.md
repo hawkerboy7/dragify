@@ -138,6 +138,19 @@ var dragify = new Dragify(options);
 *Now any element at any point in time will be a valid Dragify container if it contains the class `dragify--container` and crtl is pressed while attempting to drag*
 
 
+#### `Options.excludes`
+Excludes are DOM elements dragify will ignore. By default `excludes` contains `[INPUT, TEXTAREA, LABEL]`.
+
+```js
+options = {
+	excludes: ["DIV"]
+}
+
+var dragify = new Dragify(options);
+```
+*Now all DIV's will be ignored by Dragify while attempting to drag*
+
+
 ### Events
 You can listen to the following events
 
@@ -158,11 +171,6 @@ Event Name | Listener Arguments             | Event Description
 `drop`     | `el, parent, source`           | `el` was dropped into `parent`, and originally came from `source`
 `cancel`   | `el, source`                   | `el` was dragged but ended up at it's original position in the original `source`
 `end`      | `el`                           | Dragging event for `el` ended with either `cancel` or `drop`
-
-
-## Planned functionality
-- Support mobile
-- Support removing
 
 
 ## Inspiration

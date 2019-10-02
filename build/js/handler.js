@@ -63,22 +63,27 @@ Handler = (function() {
   };
 
   Handler.prototype.mousedown = function(ev) {
-    var check, found, x, y;
-    if (ev.button !== 0 || this.active) {
+    var check, exclude, found, i, len, ref, x, y;
+    this.ev = ev;
+    if (this.ev.button !== 0 || this.active) {
       return;
     }
-    if (ev.target.tagName === "INPUT" || ev.target.tagName === "TEXTAREA" || ev.target.tagName === "LABEL") {
-      return;
+    ref = this.dragify.options.excludes;
+    for (i = 0, len = ref.length; i < len; i++) {
+      exclude = ref[i];
+      if (this.ev.target.tagName === exclude) {
+        return;
+      }
     }
-    if (!(this.node = this.validMousedown(ev.target))) {
+    if (!(this.node = this.validMousedown(this.ev.target))) {
       return;
     }
     this.data.source = this.node.parentNode;
     this.data.index = this.getIndex(this.node);
-    this.data.start.x = ev.clientX;
-    this.data.start.y = ev.clientY;
-    x = ev.offsetX;
-    y = ev.offsetY;
+    this.data.start.x = this.ev.clientX;
+    this.data.start.y = this.ev.clientY;
+    x = this.ev.offsetX;
+    y = this.ev.offsetY;
     found = false;
     check = (function(_this) {
       return function(target) {
@@ -93,7 +98,7 @@ Handler = (function() {
         return true;
       };
     })(this);
-    if (check(ev.target)) {
+    if (check(this.ev.target)) {
       return this.error(2.1);
     }
     this.data.offset = {
@@ -132,7 +137,7 @@ Handler = (function() {
     if (!el || el === document) {
       return false;
     }
-    return this.dragify.containers.indexOf(el) !== -1 || this.dragify.options.isContainer(el);
+    return this.dragify.containers.indexOf(el) !== -1 || this.dragify.options.isContainer(el, this.ev);
   };
 
   Handler.prototype.getIndex = function(node) {
