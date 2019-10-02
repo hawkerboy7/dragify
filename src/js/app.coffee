@@ -78,6 +78,8 @@ class Dragify extends MiniEventEmitter
 			# Define logic which whould allow an element to be a valid parent container
 			isContainer: (el) -> false
 
+			# Exclude specific DOM elements from being considered by Dragify
+			excludes: ["INPUT", "TEXTAREA", "LABEL"]
 
 		# --------------------------------------------------
 		# Overwrite options if user provided different options
@@ -92,6 +94,9 @@ class Dragify extends MiniEventEmitter
 
 		# Assign the isContainer function
 		@options.isContainer = options.isContainer if options.isContainer?
+
+		# Assign the excludes
+		@options.excludes = options.excludes if options.excludes?
 
 		# Create handler doing all private work
 		new Handler this

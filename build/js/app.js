@@ -48,7 +48,8 @@ Dragify = (function(superClass) {
       transition: true,
       isContainer: function(el) {
         return false;
-      }
+      },
+      excludes: ["INPUT", "TEXTAREA", "LABEL"]
     };
     if (options.transition != null) {
       this.options.transition = options.transition;
@@ -61,6 +62,9 @@ Dragify = (function(superClass) {
     }
     if (options.isContainer != null) {
       this.options.isContainer = options.isContainer;
+    }
+    if (options.excludes != null) {
+      this.options.excludes = options.excludes;
     }
     new Handler(this);
   }
