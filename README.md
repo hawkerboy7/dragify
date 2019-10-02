@@ -6,7 +6,7 @@
 		<img src="https://img.shields.io/david/hawkerboy7/dragify.svg">
 	</a>
 	<a target="_blank" href="https://www.codacy.com/app/dunk_king7/dragify/dashboard">
-		<img src="https://img.shields.io/codacy/8cd2ff21ecb545d9b378336a26704532.svg">
+		<img src="https://img.shields.io/codacy/grade/8cd2ff21ecb545d9b378336a26704532.svg">
 	</a>
 	<a target="_blank" href="https://gitter.im/hawkerboy7/dragify">
 		<img src="https://img.shields.io/badge/Gitter-JOIN%20CHAT%20%E2%86%92-1dce73.svg">
@@ -25,16 +25,12 @@ It triggers hardware acceleration by using the css3 `transform` and `will-change
 This should help to optimize performance when dragging elements with a lot of content on large pages.
 
 
-## Demo
-Will be created soon
-
-
 ## Features
 
 - Easy to set up
 - Uses hardware acceleration
 - The possibility to provide a [**threshold**][1]
-- The 'to-be-dragged' element provides visual feedback while dragging
+- The 'to-be-dragged' element provide a clean visual feedback while dragging and dropping
 
 
 ## Install
@@ -127,17 +123,19 @@ var dragify = new Dragify(options);
 #### `Options.isContainer`
 When you initialize `Dragify` you provide containers which contain children to be dragged. However if you have dynamic children and or containers the new elements will not be `Dragified`.
 If you provide the `isContainer` options you can define a function which determines if an element is a valid `Dragify` parent.
+The first argument `el` in `isContainer` can be used to check the DOM elements up the tree from the click target.
+The second argument `ev` can be used to investigate the mousedown event on the target.
 
 ```js
 options = {
-	isContainer: function (el) {
-		return el.classList.contains('dragify--container');
+	isContainer: function (el, ev) {
+		return el.classList.contains('dragify--container') && ev.ctrlKey;
 	}
 }
 
 var dragify = new Dragify(options);
 ```
-*Now any element at any point in time will be a valid Dragify container if it contains the class `dragify--container`*
+*Now any element at any point in time will be a valid Dragify container if it contains the class `dragify--container` and crtl is pressed while attempting to drag*
 
 
 ### Events

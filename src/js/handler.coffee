@@ -74,16 +74,16 @@ class Handler
 		@reset() if @active
 
 
-	mousedown: (ev) =>
+	mousedown: (@ev) =>
 
 		# Only continue if left mouseclick or currently nothing is being dragged
-		return if ev.button isnt 0 or @active
+		return if @ev.button isnt 0 or @active
 
 		# Do not allow dragify to drag and drop on inputs or textarea's
 		return if ev.target.tagName is "INPUT" or ev.target.tagName is "TEXTAREA" or ev.target.tagName is "LABEL"
 
 		# Check if this target is a valid node or has a valid node in its ancestry
-		return if not @node = @validMousedown ev.target
+		return if not @node = @validMousedown @ev.target
 
 		# Store the source where the node came from
 		@data.source = @node.parentNode
@@ -92,12 +92,12 @@ class Handler
 		@data.index = @getIndex @node
 
 		# Store mousedown position
-		@data.start.x = ev.clientX
-		@data.start.y = ev.clientY
+		@data.start.x = @ev.clientX
+		@data.start.y = @ev.clientY
 
 		# Store offset of the click in the element
-		x = ev.offsetX
-		y = ev.offsetY
+		x = @ev.offsetX
+		y = @ev.offsetY
 
 		# Predefine found so it is available outside the check scope
 		found = false
@@ -119,7 +119,7 @@ class Handler
 			true
 
 		# The node must always be found otherwise something is wrong with the path or the assumtion the node will always be avaiable in the path upto the window
-		return @error 2.1 if check ev.target
+		return @error 2.1 if check @ev.target
 
 		# Store the mousedown position within the node
 		@data.offset =
@@ -159,7 +159,7 @@ class Handler
 		# Null or document are not valid containers to drop into
 		return false if not el or el is document
 
-		@dragify.containers.indexOf(el) isnt -1 or @dragify.options.isContainer el
+		@dragify.containers.indexOf(el) isnt -1 or @dragify.options.isContainer el, @ev
 
 
 	getIndex: (node) ->
