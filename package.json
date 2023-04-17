@@ -9,7 +9,7 @@
     "mini-event-emitter": "^0.10.2"
   },
   "devDependencies": {
-    "de-builder": "^1.0.2"
+    "de-builder": "^2.2.0"
   },
   "repository": {
     "type": "git",
