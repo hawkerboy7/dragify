@@ -16,7 +16,6 @@
 
 
 # Dragify
-> Turn your plain DOM elements into drag queens
 
 
 ## What is it?
